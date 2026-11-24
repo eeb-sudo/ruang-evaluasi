@@ -62,6 +62,30 @@
     </div>
   </div>
 
+  <!-- MODAL DETAIL POIN PER MURID -->
+  <div id="student-detail-modal" class="fixed inset-0 z-[65] hidden items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+    <div class="bg-white border border-stone-200 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[88vh] flex flex-col overflow-hidden">
+      <div class="px-5 py-4 border-b border-stone-200 flex items-center justify-between bg-stone-50">
+        <div>
+          <span id="sd-badge" class="text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md">DETAIL POIN SISWA</span>
+          <h3 id="sd-title" class="text-base font-extrabold text-slate-800 mt-1">Nama Siswa</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="unduhDetailSiswaCSV()" class="px-3 py-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold transition">
+            Unduh CSV Siswa Ini
+          </button>
+          <button onclick="tutupModalId('student-detail-modal')" class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 hover:bg-stone-100 text-slate-600 text-xs font-bold">
+            Tutup
+          </button>
+        </div>
+      </div>
+      <div class="p-5 overflow-y-auto space-y-4">
+        <div id="sd-summary" class="flex flex-wrap gap-2 text-xs"></div>
+        <div id="sd-grid" class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-2 text-center text-xs"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL CEK HASIL & PEMBAHASAN LINTAS PERANGKAT -->
   <div id="lookup-result-modal" class="fixed inset-0 z-[65] hidden items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
     <div class="bg-white border border-stone-200 rounded-3xl shadow-2xl max-w-md w-full p-6 space-y-4">
@@ -116,7 +140,7 @@
     </div>
   </div>
 
-  <!-- MODAL EDIT PENGATURAN KUIS LANGSUNG (BOBOT POIN BERTINGKAT) -->
+  <!-- MODAL EDIT PENGATURAN KUIS LANGSUNG (BOBOT POIN BERTINGKAT + INFO POIN MAKSIMAL) -->
   <div id="edit-config-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4">
     <div class="bg-white border border-stone-200 rounded-3xl shadow-2xl max-w-xl w-full max-h-[92vh] flex flex-col overflow-hidden">
       <div class="px-5 py-4 border-b border-stone-100 flex items-center justify-between bg-stone-50">
@@ -130,6 +154,9 @@
       </div>
 
       <div class="p-5 overflow-y-auto space-y-4 text-xs">
+        <!-- Info Rincian Butir & Total Poin Maksimal -->
+        <div id="edit-cfg-max-info" class="p-3 rounded-2xl bg-amber-50/80 border border-amber-200 text-amber-950 font-medium leading-relaxed"></div>
+
         <!-- Durasi & PG Biasa -->
         <div class="grid grid-cols-2 gap-3 bg-stone-50 p-3.5 rounded-2xl border border-stone-200">
           <div>
@@ -139,7 +166,7 @@
           </div>
           <div>
             <label class="block text-[11px] font-bold text-slate-700 mb-1">PG Biasa: Poin Benar</label>
-            <input type="number" id="edit-cfg-poin-pg" min="0" max="50" step="0.5" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+            <input type="number" id="edit-cfg-poin-pg" min="0" max="50" step="0.5" oninput="perbaruiInfoPoinMaksimalEdit()" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
             <span class="text-[10px] text-slate-400 block text-center mt-0.5">Salah / Kosong = 0</span>
           </div>
         </div>
@@ -150,7 +177,7 @@
           <div class="grid grid-cols-3 gap-2.5">
             <div>
               <label class="block text-[10px] font-bold text-slate-700 mb-1">Benar Semua</label>
-              <input type="number" id="edit-cfg-poin-mcma" min="0" max="50" step="0.5" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+              <input type="number" id="edit-cfg-poin-mcma" min="0" max="50" step="0.5" oninput="perbaruiInfoPoinMaksimalEdit()" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
               <span class="text-[10px] text-slate-500 block text-center mt-0.5">Maksimal</span>
             </div>
             <div>
@@ -172,7 +199,7 @@
           <div class="grid grid-cols-3 gap-2.5">
             <div>
               <label class="block text-[10px] font-bold text-slate-700 mb-1">3 Benar (Semua)</label>
-              <input type="number" id="edit-cfg-poin-kat" min="0" max="50" step="0.5" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+              <input type="number" id="edit-cfg-poin-kat" min="0" max="50" step="0.5" oninput="perbaruiInfoPoinMaksimalEdit()" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
               <span class="text-[10px] text-slate-500 block text-center mt-0.5">Maksimal</span>
             </div>
             <div>
@@ -308,34 +335,47 @@
     </div>
   </div>
 
-  <!-- MODAL PANTAUAN PESERTA LIVE & ANALISIS BUTIR -->
+  <!-- MODAL PANTAUAN PESERTA LIVE, ANALISIS BUTIR LIPAT & REKAP KELAS -->
   <div id="participants-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-    <div class="bg-white border border-stone-200 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[88vh] flex flex-col overflow-hidden">
-      <div class="px-6 py-4 border-b border-stone-200 flex flex-wrap items-center justify-between gap-3 bg-stone-50">
+    <div class="bg-white border border-stone-200 rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="px-5 py-4 border-b border-stone-200 flex flex-wrap items-center justify-between gap-3 bg-stone-50">
         <div>
           <span id="part-badge" class="text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md">KODE</span>
-          <h3 id="part-title" class="text-base font-extrabold text-slate-800 mt-1">Pantauan Peserta & Analisis Butir</h3>
+          <h3 id="part-title" class="text-base font-extrabold text-slate-800 mt-1">Pantauan Peserta & Analisis Nilai</h3>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="refreshPesertaModal()" class="px-3 py-1.5 rounded-xl bg-teal-50 text-teal-800 hover:bg-teal-100 text-xs font-bold">
-            Segarkan
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" id="btn-toggle-item-analysis" onclick="toggleAnalisisButir()" class="px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-800 hover:bg-indigo-100 text-xs font-bold border border-indigo-200/80 transition">
+            Lihat Analisis Butir
           </button>
-          <button onclick="unduhRekapCSV()" class="px-3 py-1.5 rounded-xl bg-slate-800 text-white hover:bg-slate-900 text-xs font-bold">
-            Unduh Excel (.csv)
+          <button onclick="refreshPesertaModal()" class="px-3 py-1.5 rounded-xl bg-teal-50 text-teal-800 hover:bg-teal-100 text-xs font-bold transition">
+            Segarkan
           </button>
           <button onclick="tutupModalId('participants-modal')" class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-600 hover:bg-stone-100 text-xs font-bold">
             Tutup
           </button>
         </div>
       </div>
-      <div class="p-4 sm:p-6 overflow-y-auto space-y-5">
-        <div id="part-summary" class="flex flex-wrap gap-2.5 text-xs"></div>
 
-        <!-- Analisis Butir Soal -->
-        <div id="item-analysis-box" class="hidden p-4 rounded-2xl bg-stone-50 border border-stone-200">
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-4">
+        <!-- Baris Ringkasan + Filter Kelas & Unduh Gabungan -->
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-stone-50 p-3 rounded-2xl border border-stone-200">
+          <div id="part-summary" class="flex flex-wrap gap-2 text-xs"></div>
+
+          <div class="flex flex-wrap items-center gap-2 text-xs">
+            <select id="part-filter-kelas" onchange="renderTabelPesertaFiltered()" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-600">
+              <option value="ALL">Semua Kelas</option>
+            </select>
+            <button onclick="unduhRekapCSV()" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold transition">
+              Unduh Rekap Kelas + Poin Soal (.csv)
+            </button>
+          </div>
+        </div>
+
+        <!-- Analisis Butir Soal (Disembunyikan Bawaan, Buka Lewat Tombol) -->
+        <div id="item-analysis-box" class="hidden p-4 rounded-2xl bg-indigo-50/40 border border-indigo-200/80">
           <div class="flex items-center justify-between mb-2.5">
-            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">Analisis Butir Soal (% Salah per Nomor Asli)</h4>
-            <span class="text-[11px] text-slate-400">Merah = &ge;50% salah</span>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-950">Analisis Butir Soal (% Salah per Nomor Asli)</h4>
+            <span class="text-[11px] text-slate-500">Merah = &ge;50% salah</span>
           </div>
           <div id="item-analysis-grid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-10 gap-2 text-center text-xs"></div>
         </div>
@@ -677,7 +717,7 @@
             </div>
             <div>
               <label class="block text-[11px] font-bold text-slate-600 mb-1">PG Biasa: Poin Benar</label>
-              <input type="number" id="cfg-poin-pg" value="1" min="0" max="50" step="0.5" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+              <input type="number" id="cfg-poin-pg" value="1" min="0" max="50" step="0.5" oninput="perbaruiInfoPoinMaksimalUpload()" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
               <span class="text-[10px] text-slate-400 block text-center mt-0.5">Salah / Kosong = 0</span>
             </div>
           </div>
@@ -689,7 +729,7 @@
               <div class="grid grid-cols-3 gap-2">
                 <div>
                   <label class="block text-[10px] font-bold text-slate-700 mb-1">Benar Semua</label>
-                  <input type="number" id="cfg-poin-mcma" value="3" min="0" max="50" step="0.5" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+                  <input type="number" id="cfg-poin-mcma" value="3" min="0" max="50" step="0.5" oninput="perbaruiInfoPoinMaksimalUpload()" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
                   <span class="text-[10px] text-slate-500 block text-center mt-0.5">Maksimal</span>
                 </div>
                 <div>
@@ -710,7 +750,7 @@
               <div class="grid grid-cols-3 gap-2">
                 <div>
                   <label class="block text-[10px] font-bold text-slate-700 mb-1">3 Benar</label>
-                  <input type="number" id="cfg-poin-kat" value="3" min="0" max="50" step="0.5" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+                  <input type="number" id="cfg-poin-kat" value="3" min="0" max="50" step="0.5" oninput="perbaruiInfoPoinMaksimalUpload()" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
                   <span class="text-[10px] text-slate-500 block text-center mt-0.5">Maksimal</span>
                 </div>
                 <div>
@@ -746,8 +786,11 @@
 
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1.5">Pilih File Soal (.json)</label>
-            <input type="file" id="guru-json-file" accept=".json,application/json" class="w-full text-xs text-slate-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 border border-slate-300 rounded-xl p-1.5" />
+            <input type="file" id="guru-json-file" accept=".json,application/json" onchange="previewFileJsonUpload()" class="w-full text-xs text-slate-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 border border-slate-300 rounded-xl p-1.5" />
           </div>
+
+          <!-- Kotak Simulasi Poin Maksimal Sebelum Publikasi -->
+          <div id="upload-max-points-info" class="hidden p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-950 font-medium leading-relaxed"></div>
 
           <button id="btn-upload-json" onclick="prosesUploadJSON()" class="w-full py-3.5 px-5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2">
             <span>Unggah & Publikasikan Kuis Sekarang</span>
@@ -877,8 +920,11 @@
 
     let cachedRekapData = null;
     let riwayatListCache = [];
+    let uploadedJsonPreviewList = [];
     let currentMonitoringQuiz = null;
     let currentParticipantsCache = [];
+    let currentSelectedStudentDetail = null;
+    let editingConfigIdx = -1;
     let editingConfigKode = "";
     let previewingQuizIdx = -1;
     let quizFontSizeMode = localStorage.getItem("quiz_font_size") || "normal";
@@ -893,6 +939,85 @@
       gambar: "",
       posisiGambar: "atas"
     };
+
+    // ==================== KALKULATOR POIN MAKSIMAL ====================
+    function hitungRingkasanPoinMaksimal(soalList, cfg) {
+      let cPG = 0, cMCMA = 0, cKat = 0;
+      (soalList || []).forEach(q => {
+        if (q.tipe === "pg") cPG++;
+        else if (q.tipe === "mcma") cMCMA++;
+        else if (q.tipe === "kategori") cKat++;
+      });
+      const maxPG = cPG * (Number(cfg.poinPG) || 0);
+      const maxMCMA = cMCMA * (Number(cfg.poinMCMA) || 0);
+      const maxKat = cKat * (Number(cfg.poinKat) || 0);
+      const totalMax = maxPG + maxMCMA + maxKat;
+      return { cPG, cMCMA, cKat, maxPG, maxMCMA, maxKat, totalMax };
+    }
+
+    async function previewFileJsonUpload() {
+      const fileInput = document.getElementById("guru-json-file");
+      const infoBox = document.getElementById("upload-max-points-info");
+      if (!fileInput.files || fileInput.files.length === 0) {
+        uploadedJsonPreviewList = [];
+        infoBox.classList.add("hidden");
+        return;
+      }
+      try {
+        const text = await fileInput.files[0].text();
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          uploadedJsonPreviewList = parsed;
+          perbaruiInfoPoinMaksimalUpload();
+        } else {
+          uploadedJsonPreviewList = [];
+          infoBox.classList.add("hidden");
+        }
+      } catch (_) {
+        uploadedJsonPreviewList = [];
+        infoBox.classList.add("hidden");
+      }
+    }
+
+    function perbaruiInfoPoinMaksimalUpload() {
+      const infoBox = document.getElementById("upload-max-points-info");
+      if (!uploadedJsonPreviewList || uploadedJsonPreviewList.length === 0) {
+        infoBox.classList.add("hidden");
+        return;
+      }
+      const cfg = {
+        poinPG: parseFloat(document.getElementById("cfg-poin-pg").value) || 0,
+        poinMCMA: parseFloat(document.getElementById("cfg-poin-mcma").value) || 0,
+        poinKat: parseFloat(document.getElementById("cfg-poin-kat").value) || 0
+      };
+      const stat = hitungRingkasanPoinMaksimal(uploadedJsonPreviewList, cfg);
+      infoBox.innerHTML = `
+        <div class="font-bold text-amber-900 mb-1">Simulasi Total Poin Maksimal (${uploadedJsonPreviewList.length} Soal): <span class="text-sm underline">${stat.totalMax} Poin</span></div>
+        <div class="text-[11px] text-amber-800">
+          Rincian: <strong>${stat.cPG} PG</strong> (${stat.maxPG} poin) + <strong>${stat.cMCMA} MCMA</strong> (${stat.maxMCMA} poin) + <strong>${stat.cKat} Kategori</strong> (${stat.maxKat} poin)
+        </div>
+      `;
+      infoBox.classList.remove("hidden");
+    }
+
+    function perbaruiInfoPoinMaksimalEdit() {
+      const infoBox = document.getElementById("edit-cfg-max-info");
+      const item = riwayatListCache[editingConfigIdx];
+      if (!item || !infoBox) return;
+
+      const cfg = {
+        poinPG: parseFloat(document.getElementById("edit-cfg-poin-pg").value) || 0,
+        poinMCMA: parseFloat(document.getElementById("edit-cfg-poin-mcma").value) || 0,
+        poinKat: parseFloat(document.getElementById("edit-cfg-poin-kat").value) || 0
+      };
+      const stat = hitungRingkasanPoinMaksimal(item.soal || [], cfg);
+      infoBox.innerHTML = `
+        <div class="font-bold text-amber-900 mb-0.5">Total Poin Maksimal (${(item.soal || []).length} Soal): <span class="text-sm underline">${stat.totalMax} Poin</span></div>
+        <div class="text-[11px] text-amber-800">
+          Rincian: <strong>${stat.cPG} PG</strong> (${stat.maxPG} poin) + <strong>${stat.cMCMA} MCMA</strong> (${stat.maxMCMA} poin) + <strong>${stat.cKat} Kategori</strong> (${stat.maxKat} poin)
+        </div>
+      `;
+    }
 
     // ==================== KONTROL LAYAR PENUH & TIRAI HITAM ====================
     function aktifkanLayarPenuh() {
@@ -2171,15 +2296,16 @@
       document.getElementById("rincian-butir-label").textContent = `${jmlPG} PG • ${jmlMCMA} MCMA • ${jmlKat} Kategori`;
     }
 
-    const JSON_SCHEMA_GUIDE = `Aturan Penulisan Matematika, Tabel & Gambar:
-1. Format Matematika (LaTeX): Setiap pecahan, pangkat, akar, atau rumus matematika WAJIB ditulis dengan tanda dolar tunggal agar dirender rapi (contoh: $\\frac{1}{2}$, $2^3$, $\\sqrt{16}$, $\\pi r^2$). Jangan menulis pecahan datar seperti 1/2 jika merupakan ekspresi matematika.
-2. Format Tabel Data: Jika ada tabel pada bacaan/wacana atau pertanyaan, WAJIB ditulis dalam format tabel Markdown menggunakan tanda pipa | dan garis pemisah |---|---| pada baris baru (JANGAN ditulis dalam bentuk kalimat "Baris 1:..."). Contoh:
+    const JSON_SCHEMA_GUIDE = `Aturan Ketat Penulisan Matematika, Pecahan, Tabel & Gambar:
+1. Akurasi Pembacaan Pecahan & Angka (SANGAT PENTING): Baca setiap angka dan pecahan PERSIS seperti tertulis pada naskah asli. JANGAN PERNAH mengubah atau "mengoreksi otomatis" pecahan menjadi desimal (contoh: jika naskah tertulis pecahan $\\frac{0}{7}$, WAJIB ditulis $\\frac{0}{7}$, JANGAN diubah menjadi 0,7!).
+2. Format Matematika (LaTeX): Setiap pecahan, pangkat, akar, atau rumus matematika WAJIB ditulis dengan tanda dolar tunggal agar dirender rapi (contoh: $\\frac{1}{2}$, $\\frac{0}{7}$, $2^3$, $\\sqrt{16}$, $\\pi r^2$).
+3. Format Tabel Data: Jika ada tabel pada bacaan/wacana atau pertanyaan, WAJIB ditulis dalam format tabel Markdown menggunakan tanda pipa | dan garis pemisah |---|---| pada baris baru (JANGAN ditulis dalam bentuk kalimat "Baris 1:..."). Contoh:
 Perhatikan tabel berikut!
 | Tepung (kg) | Gula (kg) |
 |---|---|
 | 3 | 2 |
 | 6 | 4 |
-3. Kolom "gambar": Biarkan kosong "" (gambar screenshot akan ditempel guru melalui menu Pratinjau setelah file diunggah).
+4. Kolom "gambar": Biarkan kosong "" (gambar screenshot akan ditempel guru melalui menu Pratinjau setelah file diunggah).
 Gunakan struktur JSON array persis seperti format berikut tanpa teks tambahan di luar JSON:
 [
   {
@@ -2244,7 +2370,7 @@ ${JSON_SCHEMA_GUIDE}`;
     function salinPromptKonversi() {
       const promptText = `Bertindaklah sebagai asisten pengolah naskah ujian. Saya akan melampirkan/menempelkan naskah soal yang sudah ada beserta kunci jawabannya.
 Tugas Anda:
-1. Konversikan SELURUH soal tersebut ke dalam format file downloadable .json (atau blok kode JSON siap simpan) TANPA mengubah maksud pertanyaan, opsi jawaban, maupun kunci jawaban aslinya.
+1. Konversikan SELURUH soal tersebut ke dalam format file downloadable .json (atau blok kode JSON siap simpan) TANPA mengubah maksud pertanyaan, angka/pecahan asli, opsi jawaban, maupun kunci jawaban aslinya.
 2. Kelompokkan tipe soal secara otomatis:
    - Gunakan "pg" untuk pilihan ganda 1 jawaban benar (indeks 0-3).
    - Gunakan "mcma" untuk pilihan ganda kompleks dengan lebih dari 1 jawaban benar (array indeks).
@@ -2316,6 +2442,8 @@ ${JSON_SCHEMA_GUIDE}`;
             message: `Sebanyak ${result.total} soal berhasil disimpan ke Bank Soal dengan kode "${kodeKuis}".`
           });
           fileInput.value = "";
+          uploadedJsonPreviewList = [];
+          document.getElementById("upload-max-points-info").classList.add("hidden");
           document.getElementById("guru-kode-kuis").value = "";
           document.getElementById("guru-nama-materi").value = "";
           muatRiwayatKuis();
@@ -2362,7 +2490,7 @@ ${JSON_SCHEMA_GUIDE}`;
         const isAktif = (item.status || "AKTIF") === "AKTIF";
         const cfg = item.config || {};
         const durasiTxt = cfg.durasiMenit > 0 ? `${cfg.durasiMenit} mnt` : "Tanpa batas";
-        const modeTxt = cfg.antiCheat !== false ? "Mode Ujian" : "Latihan";
+        const stat = hitungRingkasanPoinMaksimal(item.soal || [], cfg);
 
         const tr = document.createElement("tr");
         tr.className = "hover:bg-stone-50/70 transition";
@@ -2373,8 +2501,8 @@ ${JSON_SCHEMA_GUIDE}`;
             <div class="text-[11px] text-slate-400">${item.waktu || ""}</div>
           </td>
           <td class="py-3.5 px-3 text-center">
-            <div class="font-bold text-slate-700">${(item.soal || []).length} soal</div>
-            <div class="text-[11px] text-slate-500">${durasiTxt} • ${modeTxt}</div>
+            <div class="font-bold text-slate-700">${(item.soal || []).length} soal (Maks ${stat.totalMax} poin)</div>
+            <div class="text-[11px] text-slate-500">${durasiTxt}</div>
           </td>
           <td class="py-3.5 px-3 text-center">
             <span class="px-2.5 py-1 rounded-full text-[11px] font-bold ${
@@ -2907,6 +3035,7 @@ ${JSON_SCHEMA_GUIDE}`;
     function bukaEditPengaturan(idx) {
       const item = riwayatListCache[idx];
       if (!item) return;
+      editingConfigIdx = idx;
       editingConfigKode = item.kode;
       const cfg = item.config || {};
 
@@ -2922,6 +3051,8 @@ ${JSON_SCHEMA_GUIDE}`;
       document.getElementById("edit-cfg-poin-kat1").value = cfg.poinKat1 ?? 1;
       document.getElementById("edit-cfg-anti-cheat").checked = cfg.antiCheat !== false;
       document.getElementById("edit-cfg-show-pembahasan").checked = cfg.showPembahasan !== false;
+
+      perbaruiInfoPoinMaksimalEdit();
 
       const modal = document.getElementById("edit-config-modal");
       modal.classList.remove("hidden");
@@ -2972,14 +3103,31 @@ ${JSON_SCHEMA_GUIDE}`;
       }
     }
 
-    // ==================== PANTAUAN PESERTA, ANALISIS BUTIR & RESET ====================
+    // ==================== PANTAUAN PESERTA, ANALISIS BUTIR LIPAT, DETAIL POIN & EKSPOR KELAS ====================
+    function toggleAnalisisButir() {
+      const box = document.getElementById("item-analysis-box");
+      const btn = document.getElementById("btn-toggle-item-analysis");
+      const isHidden = box.classList.contains("hidden");
+      if (isHidden) {
+        box.classList.remove("hidden");
+        btn.textContent = "Sembunyikan Analisis Butir";
+      } else {
+        box.classList.add("hidden");
+        btn.textContent = "Lihat Analisis Butir";
+      }
+    }
+
     async function bukaPantauanPeserta(idx) {
       const item = riwayatListCache[idx];
       if (!item) return;
       currentMonitoringQuiz = item;
 
+      // Pastikan analisis butir tertutup saat awal dibuka agar layar peserta lega
+      document.getElementById("item-analysis-box").classList.add("hidden");
+      document.getElementById("btn-toggle-item-analysis").textContent = "Lihat Analisis Butir";
+
       document.getElementById("part-badge").textContent = `KODE: ${item.kode}`;
-      document.getElementById("part-title").textContent = `Pantauan & Analisis: ${item.materi}`;
+      document.getElementById("part-title").textContent = `Pantauan Peserta & Rekap Poin: ${item.materi}`;
       const modal = document.getElementById("participants-modal");
       modal.classList.remove("hidden");
       modal.classList.add("flex");
@@ -2991,8 +3139,8 @@ ${JSON_SCHEMA_GUIDE}`;
       if (!currentMonitoringQuiz) return;
       const tbody = document.getElementById("part-tbody");
       const summary = document.getElementById("part-summary");
-      const analysisBox = document.getElementById("item-analysis-box");
       const analysisGrid = document.getElementById("item-analysis-grid");
+      const filterSelect = document.getElementById("part-filter-kelas");
 
       tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">Memuat data peserta...</td></tr>`;
 
@@ -3002,19 +3150,31 @@ ${JSON_SCHEMA_GUIDE}`;
         const list = data.participants || [];
         currentParticipantsCache = list;
 
+        // Isi dropdown filter kelas
+        const prevKelas = filterSelect.value || "ALL";
+        const uniqueClasses = [...new Set(list.map(p => String(p.kelas || "").trim()).filter(Boolean))].sort();
+        filterSelect.innerHTML = `<option value="ALL">Semua Kelas (${list.length})</option>`;
+        uniqueClasses.forEach(kls => {
+          const countInClass = list.filter(p => String(p.kelas || "").trim() === kls).length;
+          filterSelect.innerHTML += `<option value="${escapeHtml(kls)}">Kelas ${escapeHtml(kls)} (${countInClass})</option>`;
+        });
+        if ([...filterSelect.options].some(o => o.value === prevKelas)) {
+          filterSelect.value = prevKelas;
+        }
+
         const aktifList = list.filter(p => p.status === "SEDANG MENGERJAKAN");
         const selesaiList = list.filter(p => p.status === "SELESAI");
 
         summary.innerHTML = `
-          <span class="px-3 py-1 rounded-xl bg-amber-50 text-amber-800 font-bold border border-amber-200">Sedang Mengerjakan: ${aktifList.length}</span>
-          <span class="px-3 py-1 rounded-xl bg-teal-50 text-teal-800 font-bold border border-teal-200">Sudah Selesai: ${selesaiList.length}</span>
-          <span class="px-3 py-1 rounded-xl bg-stone-100 text-slate-700 font-bold border border-stone-200">Total Join: ${list.length}</span>
+          <span class="px-3 py-1 rounded-xl bg-amber-50 text-amber-800 font-bold border border-amber-200">Mengerjakan: ${aktifList.length}</span>
+          <span class="px-3 py-1 rounded-xl bg-teal-50 text-teal-800 font-bold border border-teal-200">Selesai: ${selesaiList.length}</span>
+          <span class="px-3 py-1 rounded-xl bg-white text-slate-700 font-bold border border-stone-200">Total: ${list.length}</span>
         `;
 
+        // Isi grid analisis butir (siap ditampilkan saat tombol diklik)
         const totalSoal = (currentMonitoringQuiz.soal || []).length;
+        analysisGrid.innerHTML = "";
         if (selesaiList.length > 0 && totalSoal > 0) {
-          analysisBox.classList.remove("hidden");
-          analysisGrid.innerHTML = "";
           for (let no = 1; no <= totalSoal; no++) {
             let wrongByStudents = 0;
             selesaiList.forEach(p => {
@@ -3030,44 +3190,192 @@ ${JSON_SCHEMA_GUIDE}`;
             analysisGrid.appendChild(cell);
           }
         } else {
-          analysisBox.classList.add("hidden");
+          analysisGrid.innerHTML = `<div class="col-span-full text-slate-400 py-2">Belum ada peserta yang selesai untuk dianalisis.</div>`;
         }
 
-        if (list.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">Belum ada peserta yang masuk ke kuis ini.</td></tr>`;
-          return;
-        }
-
-        tbody.innerHTML = "";
-        list.slice().reverse().forEach((p) => {
-          const isWorking = p.status === "SEDANG MENGERJAKAN";
-          const tr = document.createElement("tr");
-          tr.className = "hover:bg-stone-50";
-          tr.innerHTML = `
-            <td class="py-2.5 px-3">
-              <div class="font-bold text-slate-800">${escapeHtml(p.nama)}</div>
-              <div class="text-[11px] text-slate-400">Kelas ${escapeHtml(p.kelas)} • ${escapeHtml(p.waktu)}</div>
-            </td>
-            <td class="py-2.5 px-3 text-center font-semibold text-slate-700">${escapeHtml(p.absen)}</td>
-            <td class="py-2.5 px-3 text-center">
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                isWorking ? "bg-amber-100 text-amber-800 animate-pulse" : "bg-teal-100 text-teal-800"
-              }">${escapeHtml(p.status)}</span>
-            </td>
-            <td class="py-2.5 px-3 text-center font-extrabold text-teal-800">${p.nilai}</td>
-            <td class="py-2.5 px-3 text-center text-slate-600">${escapeHtml(p.durasi)}</td>
-            <td class="py-2.5 px-3 text-center text-slate-600">${p.pelanggaran}x</td>
-            <td class="py-2.5 px-3 text-right">
-              <button data-nama="${encodeURIComponent(p.nama)}" data-absen="${encodeURIComponent(p.absen)}" data-kelas="${encodeURIComponent(p.kelas)}" onclick="konfirmasiResetPeserta(this)" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold transition">
-                Reset
-              </button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
+        renderTabelPesertaFiltered();
       } catch (e) {
         tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-amber-700">Gagal memuat daftar peserta.</td></tr>`;
       }
+    }
+
+    function renderTabelPesertaFiltered() {
+      const tbody = document.getElementById("part-tbody");
+      const selectedClass = document.getElementById("part-filter-kelas").value;
+      const filteredList = selectedClass === "ALL"
+        ? currentParticipantsCache
+        : currentParticipantsCache.filter(p => String(p.kelas || "").trim() === selectedClass);
+
+      if (filteredList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">Belum ada peserta pada pilihan ini.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = "";
+      filteredList.slice().reverse().forEach((p) => {
+        const originalIdx = currentParticipantsCache.indexOf(p);
+        const isWorking = p.status === "SEDANG MENGERJAKAN";
+        const isFinished = p.status === "SELESAI";
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-stone-50";
+        tr.innerHTML = `
+          <td class="py-2.5 px-3">
+            <div class="font-bold text-slate-800">${escapeHtml(p.nama)}</div>
+            <div class="text-[11px] text-slate-400">Kelas ${escapeHtml(p.kelas)} • ${escapeHtml(p.waktu)}</div>
+          </td>
+          <td class="py-2.5 px-3 text-center font-semibold text-slate-700">${escapeHtml(p.absen)}</td>
+          <td class="py-2.5 px-3 text-center">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${
+              isWorking ? "bg-amber-100 text-amber-800 animate-pulse" : "bg-teal-100 text-teal-800"
+            }">${escapeHtml(p.status)}</span>
+          </td>
+          <td class="py-2.5 px-3 text-center font-extrabold text-teal-800">${p.nilai}</td>
+          <td class="py-2.5 px-3 text-center text-slate-600">${escapeHtml(p.durasi)}</td>
+          <td class="py-2.5 px-3 text-center text-slate-600">${p.pelanggaran}x</td>
+          <td class="py-2.5 px-3 text-right">
+            <div class="inline-flex items-center justify-end gap-1.5">
+              ${isFinished ? `
+                <button onclick="bukaDetailPoinMurid(${originalIdx})" class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold transition">
+                  Detail Poin
+                </button>
+              ` : ""}
+              <button data-nama="${encodeURIComponent(p.nama)}" data-absen="${encodeURIComponent(p.absen)}" data-kelas="${encodeURIComponent(p.kelas)}" onclick="konfirmasiResetPeserta(this)" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold transition">
+                Reset
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function bukaDetailPoinMurid(participantIdx) {
+      const p = currentParticipantsCache[participantIdx];
+      if (!p || !currentMonitoringQuiz) return;
+      currentSelectedStudentDetail = p;
+
+      const soalList = currentMonitoringQuiz.soal || [];
+      const cfg = currentMonitoringQuiz.config || {};
+      const pts = Array.isArray(p.pointList) ? p.pointList : [];
+      const totalEarned = pts.reduce((acc, v) => acc + (Number(v) || 0), 0);
+      const maxStat = hitungRingkasanPoinMaksimal(soalList, cfg);
+
+      document.getElementById("sd-badge").textContent = `KELAS ${p.kelas} • ABSEN ${p.absen}`;
+      document.getElementById("sd-title").textContent = `${p.nama}`;
+      document.getElementById("sd-summary").innerHTML = `
+        <span class="px-3 py-1 rounded-xl bg-teal-50 text-teal-800 font-bold border border-teal-200">Nilai Akhir: ${p.nilai}</span>
+        <span class="px-3 py-1 rounded-xl bg-indigo-50 text-indigo-800 font-bold border border-indigo-200">Total Poin: ${totalEarned} / ${maxStat.totalMax}</span>
+        <span class="px-3 py-1 rounded-xl bg-stone-100 text-slate-700 font-semibold">Benar: ${p.benar} | Sebagian: ${p.sebagian} | Salah: ${p.salah}</span>
+      `;
+
+      const grid = document.getElementById("sd-grid");
+      grid.innerHTML = "";
+
+      if (pts.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-slate-400 py-4">Rincian poin per soal belum tersedia untuk data lama ini.</div>`;
+      } else {
+        soalList.forEach((q, idx) => {
+          const earned = Number(pts[idx] ?? 0);
+          const maxItem = q.tipe === "mcma" ? Number(cfg.poinMCMA ?? 3)
+            : (q.tipe === "kategori" ? Number(cfg.poinKat ?? 3) : Number(cfg.poinPG ?? 1));
+
+          const styleClass = earned >= maxItem && maxItem > 0
+            ? "bg-teal-50 border-teal-200 text-teal-900"
+            : (earned > 0 ? "bg-amber-50 border-amber-200 text-amber-900" : "bg-rose-50 border-rose-200 text-rose-800");
+
+          const card = document.createElement("div");
+          card.className = `p-2.5 rounded-xl border ${styleClass}`;
+          card.innerHTML = `
+            <div class="text-[10px] font-bold opacity-75">No. ${idx + 1} (${q.tipe.toUpperCase()})</div>
+            <div class="text-sm font-extrabold mt-0.5">${earned} <span class="text-[11px] font-normal">/ ${maxItem}</span></div>
+          `;
+          grid.appendChild(card);
+        });
+      }
+
+      const modal = document.getElementById("student-detail-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function unduhDetailSiswaCSV() {
+      const p = currentSelectedStudentDetail;
+      if (!p || !currentMonitoringQuiz) return;
+
+      const soalList = currentMonitoringQuiz.soal || [];
+      const cfg = currentMonitoringQuiz.config || {};
+      const pts = Array.isArray(p.pointList) ? p.pointList : [];
+
+      const headers = ["Nomor Soal", "Tipe Soal", "Poin Diperoleh", "Poin Maksimal"];
+      const rows = soalList.map((q, idx) => {
+        const earned = Number(pts[idx] ?? 0);
+        const maxItem = q.tipe === "mcma" ? Number(cfg.poinMCMA ?? 3)
+          : (q.tipe === "kategori" ? Number(cfg.poinKat ?? 3) : Number(cfg.poinPG ?? 1));
+        return [idx + 1, q.tipe.toUpperCase(), earned, maxItem].join(",");
+      });
+
+      const totalEarned = pts.reduce((acc, v) => acc + (Number(v) || 0), 0);
+      const maxStat = hitungRingkasanPoinMaksimal(soalList, cfg);
+      rows.push(["TOTAL", `Nilai Akhir: ${p.nilai}`, totalEarned, maxStat.totalMax].join(","));
+
+      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Detail_Poin_${p.kelas}_${p.absen}_${p.nama.replace(/\s+/g, "_")}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast(`Detail poin ${p.nama} berhasil diunduh!`, "success");
+    }
+
+    function unduhRekapCSV() {
+      const selectedClass = document.getElementById("part-filter-kelas").value;
+      const targetList = selectedClass === "ALL"
+        ? currentParticipantsCache
+        : currentParticipantsCache.filter(p => String(p.kelas || "").trim() === selectedClass);
+
+      if (!targetList || targetList.length === 0) {
+        showToast("Belum ada data peserta pada pilihan kelas ini.", "warning");
+        return;
+      }
+
+      const soalList = currentMonitoringQuiz.soal || [];
+      const cfg = currentMonitoringQuiz.config || {};
+      const maxStat = hitungRingkasanPoinMaksimal(soalList, cfg);
+
+      const soalHeaders = soalList.map((q, idx) => `No.${idx + 1} (${q.tipe.toUpperCase()})`);
+      const headers = [
+        "No Absen", "Nama Lengkap", "Kelas", "Status", "Nilai Akhir",
+        "Total Poin", "Poin Maksimal", "Benar", "Sebagian", "Salah", "Durasi", "Keluar Layar",
+        ...soalHeaders
+      ];
+
+      // Urutkan berdasarkan nomor absen jika angka
+      const sortedList = targetList.slice().sort((a, b) => (parseInt(a.absen) || 999) - (parseInt(b.absen) || 999));
+
+      const rows = sortedList.map(p => {
+        const pts = Array.isArray(p.pointList) ? p.pointList : [];
+        const totalEarned = pts.length > 0 ? pts.reduce((acc, v) => acc + (Number(v) || 0), 0) : "-";
+        const perSoalCols = soalList.map((_, idx) => (pts[idx] !== undefined ? pts[idx] : "-"));
+
+        return [
+          `"${p.absen}"`, `"${p.nama}"`, `"${p.kelas}"`, `"${p.status}"`, p.nilai,
+          totalEarned, maxStat.totalMax, p.benar, p.sebagian, p.salah, `"${p.durasi}"`, p.pelanggaran,
+          ...perSoalCols
+        ].join(",");
+      });
+
+      const classSuffix = selectedClass === "ALL" ? "Semua_Kelas" : `Kelas_${selectedClass.replace(/\s+/g, "_")}`;
+      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Rekap_Gabungan_${currentMonitoringQuiz.kode}_${classSuffix}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast(`Rekap gabungan ${classSuffix.replace("_", " ")} berhasil diunduh!`, "success");
     }
 
     function konfirmasiResetPeserta(btn) {
@@ -3104,28 +3412,6 @@ ${JSON_SCHEMA_GUIDE}`;
           }
         }
       });
-    }
-
-    function unduhRekapCSV() {
-      if (!currentParticipantsCache || currentParticipantsCache.length === 0) {
-        showToast("Belum ada data peserta untuk diunduh.", "warning");
-        return;
-      }
-      const headers = ["Waktu", "Nama Lengkap", "No Absen", "Kelas", "Status", "Nilai Akhir", "Benar", "Sebagian", "Salah", "Durasi", "Keluar Layar"];
-      const rows = currentParticipantsCache.map(p => [
-        `"${p.waktu}"`, `"${p.nama}"`, `"${p.absen}"`, `"${p.kelas}"`, `"${p.status}"`,
-        p.nilai, p.benar, p.sebagian, p.salah, `"${p.durasi}"`, p.pelanggaran
-      ].join(","));
-
-      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `Rekap_${currentMonitoringQuiz.kode}_${currentMonitoringQuiz.materi.replace(/\s+/g, "_")}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      showToast("File rekap CSV berhasil diunduh!", "success");
     }
 
     function salinPengumumanWA(idx) {
