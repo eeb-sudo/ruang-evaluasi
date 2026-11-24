@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta id="app-viewport" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Portal Evaluasi Pembelajaran Interaktif</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -21,6 +21,7 @@
     }
     .selectable-text { user-select: text; }
     .katex { font-size: 1.08em; }
+    .pinch-zoom-area { touch-action: pinch-zoom pan-x pan-y; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f5f5f4; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
@@ -47,27 +48,17 @@
     </div>
   </div>
 
-  <!-- LIGHTBOX ZOOM GAMBAR DENGAN TOMBOL ZOOM IN (+) & ZOOM OUT (-) -->
+  <!-- LIGHTBOX GAMBAR (GESTUR CUBIT 2 JARI AKTIF KHUSUS SAAT GAMBAR DIBUKA) -->
   <div id="image-zoom-modal" onclick="tutupModalId('image-zoom-modal')" class="fixed inset-0 z-[75] hidden flex-col bg-slate-900/90 backdrop-blur-xs">
-    <!-- Area Gambar yang Bisa Digulir Saat Diperbesar -->
-    <div id="zoom-scroll-container" class="flex-1 w-full overflow-auto flex items-center justify-center p-4">
-      <img id="zoomed-image-el" src="" alt="Perbesaran Gambar" onclick="event.stopPropagation()" class="rounded-2xl shadow-2xl bg-white p-1.5 transition-all duration-150" style="max-width: 92vw; max-height: 76vh;" />
-    </div>
-
-    <!-- Bilah Kontrol Zoom In / Zoom Out -->
-    <div onclick="event.stopPropagation()" class="w-full py-3.5 px-4 bg-slate-950/90 border-t border-white/10 flex flex-wrap items-center justify-center gap-2.5">
-      <button type="button" onclick="ubahSkalaZoom(-0.25)" class="w-10 h-10 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-white font-extrabold text-lg flex items-center justify-center transition" title="Perkecil Gambar">
-        −
-      </button>
-      <button type="button" onclick="resetSkalaZoom()" id="zoom-level-label" class="px-3.5 h-10 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-mono font-bold transition" title="Kembalikan Ukuran Normal">
-        100%
-      </button>
-      <button type="button" onclick="ubahSkalaZoom(0.25)" class="w-10 h-10 rounded-xl bg-teal-600 hover:bg-teal-500 active:scale-95 text-white font-extrabold text-lg flex items-center justify-center transition" title="Perbesar Gambar">
-        +
-      </button>
-      <button type="button" onclick="tutupModalId('image-zoom-modal')" class="ml-2 px-4 h-10 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition">
+    <div class="w-full py-3 px-4 flex items-center justify-between text-white text-xs bg-slate-950/80 border-b border-white/10">
+      <span class="text-slate-300">Cubit layar dengan 2 jari untuk memperbesar / memperkecil</span>
+      <button type="button" onclick="tutupModalId('image-zoom-modal')" class="px-4 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold transition">
         Tutup
       </button>
+    </div>
+
+    <div class="flex-1 w-full overflow-auto flex items-center justify-center p-4 pinch-zoom-area">
+      <img id="zoomed-image-el" src="" alt="Perbesaran Gambar" onclick="event.stopPropagation()" class="max-w-full max-h-[82vh] rounded-2xl shadow-2xl bg-white p-1.5 object-contain pinch-zoom-area" />
     </div>
   </div>
 
@@ -347,10 +338,19 @@
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <button onclick="toggleDrawerSoal()" class="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-slate-700 text-xs font-bold flex items-center gap-2 transition">
-            <svg class="w-4 h-4 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-            <span>Nomor Soal (<span id="quiz-progress-text">0/0</span>)</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="toggleDrawerSoal()" class="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-slate-700 text-xs font-bold flex items-center gap-2 transition">
+              <svg class="w-4 h-4 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+              <span>Nomor Soal (<span id="quiz-progress-text">0/0</span>)</span>
+            </button>
+
+            <!-- 3 Pengatur Ukuran Huruf: A | A+ | A++ -->
+            <div class="inline-flex rounded-xl bg-stone-100 p-0.5 border border-stone-200" role="group" aria-label="Ukuran Teks Soal">
+              <button type="button" id="font-btn-normal" onclick="aturUkuranFontKuis('normal')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition">A</button>
+              <button type="button" id="font-btn-large" onclick="aturUkuranFontKuis('large')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition">A+</button>
+              <button type="button" id="font-btn-xlarge" onclick="aturUkuranFontKuis('xlarge')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition">A++</button>
+            </div>
+          </div>
 
           <span id="violation-badge" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-stone-100 text-slate-600">
             Keluar Layar: <strong id="violation-count-display">0</strong>/3
@@ -730,7 +730,7 @@
     let currentParticipantsCache = [];
     let editingConfigKode = "";
     let previewingQuizIdx = -1;
-    let currentZoomScale = 1;
+    let quizFontSizeMode = localStorage.getItem("quiz_font_size") || "normal";
 
     // State untuk Modal Edit/Tambah Butir Soal
     let editorQuestionState = {
@@ -743,6 +743,52 @@
       gambar: "",
       posisiGambar: "atas"
     };
+
+    // ==================== PENGATUR UKURAN FONT HALAMAN KUIS ====================
+    function aturUkuranFontKuis(mode) {
+      quizFontSizeMode = mode;
+      localStorage.setItem("quiz_font_size", mode);
+      perbaruiTombolFontUI();
+      terapkanUkuranFontKuis();
+    }
+
+    function perbaruiTombolFontUI() {
+      ["normal", "large", "xlarge"].forEach(m => {
+        const btn = document.getElementById(`font-btn-${m}`);
+        if (!btn) return;
+        btn.className = m === quizFontSizeMode
+          ? "px-2.5 py-1.5 rounded-lg text-xs font-extrabold bg-teal-700 text-white shadow-2xs transition"
+          : "px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-stone-200/70 transition";
+      });
+    }
+
+    function terapkanUkuranFontKuis() {
+      const wacanaEl = document.getElementById("q-wacana-box");
+      const questionEl = document.getElementById("q-question-text");
+      const optionsContainer = document.getElementById("q-options-container");
+      if (!wacanaEl || !questionEl || !optionsContainer) return;
+
+      const wacanaSize = quizFontSizeMode === "xlarge"
+        ? "text-lg sm:text-xl"
+        : (quizFontSizeMode === "large" ? "text-base sm:text-lg" : "text-sm");
+
+      const questionSize = quizFontSizeMode === "xlarge"
+        ? "text-xl sm:text-2xl"
+        : (quizFontSizeMode === "large" ? "text-lg sm:text-xl" : "text-base sm:text-lg");
+
+      const optionSize = quizFontSizeMode === "xlarge"
+        ? "text-lg sm:text-xl"
+        : (quizFontSizeMode === "large" ? "text-base sm:text-lg" : "text-sm");
+
+      const isWacanaHidden = wacanaEl.classList.contains("hidden");
+      wacanaEl.className = `${isWacanaHidden ? "hidden " : ""}mb-5 p-4 rounded-2xl bg-stone-50 border border-stone-200 ${wacanaSize} text-slate-700 leading-relaxed`;
+      questionEl.className = `${questionSize} font-semibold text-slate-800 leading-relaxed mb-5`;
+
+      optionsContainer.querySelectorAll(".quiz-option-text").forEach(el => {
+        el.classList.remove("text-sm", "text-base", "text-lg", "text-xl", "sm:text-lg", "sm:text-xl");
+        optionSize.split(" ").forEach(cls => el.classList.add(cls));
+      });
+    }
 
     // ==================== PENERJEMAH TABEL TEKS (MARKDOWN) & HTML SAFE ====================
     function escapeHtml(str) {
@@ -817,8 +863,8 @@
       }
     }
 
-    // ==================== KOMPRESI GAMBAR SCREENSHOT ====================
-    function compressImageToBase64(fileOrBlob, maxWidth = 1000, quality = 0.8) {
+    // ==================== KOMPRESI GAMBAR SCREENSHOT (RESOLUSI TINGGI) ====================
+    function compressImageToBase64(fileOrBlob, maxWidth = 1400, quality = 0.85) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (event) => {
@@ -851,7 +897,7 @@
       });
     }
 
-    // ==================== UI HELPERS & LIGHTBOX ZOOM ====================
+    // ==================== UI HELPERS & LIGHTBOX GAMBAR (ZOOM KHUSUS GAMBAR) ====================
     function showToast(message, type = "info") {
       const container = document.getElementById("toast-container");
       const toast = document.createElement("div");
@@ -926,49 +972,22 @@
       const el = document.getElementById(id);
       el.classList.add("hidden");
       el.classList.remove("flex");
+
+      if (id === "image-zoom-modal") {
+        const vp = document.getElementById("app-viewport");
+        if (vp) vp.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no");
+      }
     }
 
     function bukaZoomGambar(src) {
       if (!src) return;
-      const imgEl = document.getElementById("zoomed-image-el");
-      imgEl.src = src;
-      resetSkalaZoom();
+      const vp = document.getElementById("app-viewport");
+      if (vp) vp.setAttribute("content", "width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes");
+
+      document.getElementById("zoomed-image-el").src = src;
       const modal = document.getElementById("image-zoom-modal");
       modal.classList.remove("hidden");
       modal.classList.add("flex");
-    }
-
-    function ubahSkalaZoom(delta) {
-      currentZoomScale = Math.min(3.0, Math.max(0.5, Number((currentZoomScale + delta).toFixed(2))));
-      terapkanSkalaZoom();
-    }
-
-    function resetSkalaZoom() {
-      currentZoomScale = 1;
-      terapkanSkalaZoom();
-    }
-
-    function terapkanSkalaZoom() {
-      const imgEl = document.getElementById("zoomed-image-el");
-      const scrollBox = document.getElementById("zoom-scroll-container");
-      document.getElementById("zoom-level-label").textContent = `${Math.round(currentZoomScale * 100)}%`;
-
-      if (currentZoomScale === 1) {
-        imgEl.style.width = "auto";
-        imgEl.style.maxWidth = "92vw";
-        imgEl.style.maxHeight = "76vh";
-        scrollBox.classList.add("items-center", "justify-center");
-      } else {
-        const baseWidth = Math.min(window.innerWidth * 0.9, 760);
-        imgEl.style.maxWidth = "none";
-        imgEl.style.maxHeight = "none";
-        imgEl.style.width = `${Math.round(baseWidth * currentZoomScale)}px`;
-        if (currentZoomScale > 1) {
-          scrollBox.classList.remove("items-center", "justify-center");
-        } else {
-          scrollBox.classList.add("items-center", "justify-center");
-        }
-      }
     }
 
     function switchView(viewId) {
@@ -1225,6 +1244,7 @@
       updateTimerDisplay();
       activeQuiz.timerInterval = setInterval(updateTimerDisplay, 1000);
 
+      perbaruiTombolFontUI();
       buildDrawerGrid();
       renderSoal(activeQuiz.currentIndex || 0);
       switchView("view-quiz");
@@ -1383,7 +1403,7 @@
         const targetSlot = pos === "bawah" ? slotBawah : (pos === "tengah" && hasWacana ? slotTengah : slotAtas);
         targetSlot.innerHTML = `
           <img src="${q.gambar.trim()}" alt="Ilustrasi Soal" onclick="bukaZoomGambar(this.src)" onerror="this.parentElement.classList.add('hidden')" class="max-h-64 rounded-2xl border border-stone-200 mx-auto object-contain bg-white p-1 cursor-zoom-in hover:opacity-95 transition" />
-          <span class="text-[11px] text-slate-400 mt-1 inline-block">Ketuk gambar untuk memperbesar (+ / -)</span>
+          <span class="text-[11px] text-slate-400 mt-1 inline-block">Ketuk gambar untuk memperbesar</span>
         `;
         targetSlot.classList.remove("hidden");
       }
@@ -1405,7 +1425,7 @@
             <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
               selected ? "bg-teal-700 text-white" : "bg-stone-100 text-slate-600"
             }">${huruf[optIdx] || optIdx + 1}</span>
-            <span class="text-sm leading-relaxed pt-0.5">${escapeHtml(teksOpsi)}</span>
+            <span class="quiz-option-text text-sm leading-relaxed pt-0.5">${escapeHtml(teksOpsi)}</span>
           `;
           card.onclick = () => {
             activeQuiz.answers[index] = optIdx;
@@ -1429,7 +1449,7 @@
             }">
               ${checked ? '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>' : ""}
             </div>
-            <span class="text-sm leading-relaxed">${escapeHtml(teksOpsi)}</span>
+            <span class="quiz-option-text text-sm leading-relaxed">${escapeHtml(teksOpsi)}</span>
           `;
           card.onclick = () => {
             const arr = activeQuiz.answers[index];
@@ -1464,7 +1484,7 @@
           const currentVal = activeQuiz.answers[index][stmtIdx];
 
           row.innerHTML = `
-            <div class="col-span-7 sm:col-span-8 text-slate-700 leading-snug pr-2">${escapeHtml(pernyataan)}</div>
+            <div class="quiz-option-text col-span-7 sm:col-span-8 text-slate-700 leading-snug pr-2">${escapeHtml(pernyataan)}</div>
             <div class="col-span-5 sm:col-span-4 grid grid-cols-2 gap-2">
               <button type="button" data-val="0" class="py-1.5 rounded-lg border text-xs font-bold transition ${
                 currentVal === 0 ? "bg-teal-700 text-white border-teal-700" : "bg-stone-50 text-slate-600 border-stone-200 hover:bg-stone-100"
@@ -1497,6 +1517,7 @@
         document.getElementById("btn-finish-q").classList.add("hidden");
       }
 
+      terapkanUkuranFontKuis();
       refreshDrawerStatus();
       renderAllMath(document.getElementById("quiz-card-body"));
     }
@@ -2538,7 +2559,7 @@ ${JSON_SCHEMA_GUIDE}`;
 
       showToast(`Mengompresi & mengunggah gambar Soal ${qIdx + 1} ke Google Drive...`, "info");
       try {
-        const compressed = await compressImageToBase64(fileOrBlob, 1000, 0.8);
+        const compressed = await compressImageToBase64(fileOrBlob, 1400, 0.85);
         const res = await fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
           body: JSON.stringify({
