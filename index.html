@@ -116,59 +116,102 @@
     </div>
   </div>
 
-  <!-- MODAL EDIT PENGATURAN KUIS LANGSUNG -->
-  <div id="edit-config-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-    <div class="bg-white border border-stone-200 rounded-3xl shadow-2xl max-w-lg w-full p-6 space-y-5">
-      <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+  <!-- MODAL EDIT PENGATURAN KUIS LANGSUNG (BOBOT POIN BERTINGKAT) -->
+  <div id="edit-config-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4">
+    <div class="bg-white border border-stone-200 rounded-3xl shadow-2xl max-w-xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="px-5 py-4 border-b border-stone-100 flex items-center justify-between bg-stone-50">
         <div>
           <span id="edit-cfg-badge" class="text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md">KODE</span>
-          <h3 id="edit-cfg-title" class="text-base font-extrabold text-slate-800 mt-1">Edit Pengaturan Kuis</h3>
+          <h3 id="edit-cfg-title" class="text-base font-extrabold text-slate-800 mt-1">Edit Pengaturan & Bobot Poin</h3>
         </div>
-        <button onclick="tutupModalId('edit-config-modal')" class="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-slate-600 text-xs font-bold">
+        <button onclick="tutupModalId('edit-config-modal')" class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 hover:bg-stone-100 text-slate-600 text-xs font-bold">
           Batal
         </button>
       </div>
 
-      <div class="grid grid-cols-2 gap-3 bg-stone-50 p-3.5 rounded-2xl border border-stone-200">
-        <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1">Durasi (Menit)</label>
-          <input type="number" id="edit-cfg-durasi" min="0" max="300" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
-          <span class="text-[10px] text-slate-400 block text-center mt-0.5">0 = Tanpa Batas</span>
+      <div class="p-5 overflow-y-auto space-y-4 text-xs">
+        <!-- Durasi & PG Biasa -->
+        <div class="grid grid-cols-2 gap-3 bg-stone-50 p-3.5 rounded-2xl border border-stone-200">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">Durasi Ujian (Menit)</label>
+            <input type="number" id="edit-cfg-durasi" min="0" max="300" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+            <span class="text-[10px] text-slate-400 block text-center mt-0.5">0 = Tanpa Batas</span>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">PG Biasa: Poin Benar</label>
+            <input type="number" id="edit-cfg-poin-pg" min="0" max="50" step="0.5" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+            <span class="text-[10px] text-slate-400 block text-center mt-0.5">Salah / Kosong = 0</span>
+          </div>
         </div>
-        <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1">Poin Maks PG</label>
-          <input type="number" id="edit-cfg-poin-pg" min="1" max="20" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+
+        <!-- Bobot Poin MCMA -->
+        <div class="bg-teal-50/50 p-3.5 rounded-2xl border border-teal-200/80 space-y-2.5">
+          <div class="font-bold text-teal-900 text-xs">Bobot Poin MCMA (Pilihan Ganda Kompleks)</div>
+          <div class="grid grid-cols-3 gap-2.5">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-700 mb-1">Benar Semua</label>
+              <input type="number" id="edit-cfg-poin-mcma" min="0" max="50" step="0.5" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+              <span class="text-[10px] text-slate-500 block text-center mt-0.5">Maksimal</span>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-700 mb-1">Sebagian Murni</label>
+              <input type="number" id="edit-cfg-poin-mcma-murni" min="0" max="50" step="0.5" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+              <span class="text-[10px] text-slate-500 block text-center mt-0.5">Benar, tanpa salah</span>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-700 mb-1">Sebagian Campur</label>
+              <input type="number" id="edit-cfg-poin-mcma-campur" min="0" max="50" step="0.5" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+              <span class="text-[10px] text-slate-500 block text-center mt-0.5">Benar + ada salah</span>
+            </div>
+          </div>
         </div>
-        <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1">Poin Maks MCMA</label>
-          <input type="number" id="edit-cfg-poin-mcma" min="1" max="20" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+
+        <!-- Bobot Poin Kategori -->
+        <div class="bg-indigo-50/50 p-3.5 rounded-2xl border border-indigo-200/80 space-y-2.5">
+          <div class="font-bold text-indigo-900 text-xs">Bobot Poin Kategori (3 Pernyataan)</div>
+          <div class="grid grid-cols-3 gap-2.5">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-700 mb-1">3 Benar (Semua)</label>
+              <input type="number" id="edit-cfg-poin-kat" min="0" max="50" step="0.5" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+              <span class="text-[10px] text-slate-500 block text-center mt-0.5">Maksimal</span>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-700 mb-1">2 Pernyataan Benar</label>
+              <input type="number" id="edit-cfg-poin-kat2" min="0" max="50" step="0.5" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+              <span class="text-[10px] text-slate-500 block text-center mt-0.5">Sebagian 2</span>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-700 mb-1">1 Pernyataan Benar</label>
+              <input type="number" id="edit-cfg-poin-kat1" min="0" max="50" step="0.5" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+              <span class="text-[10px] text-slate-500 block text-center mt-0.5">Sebagian 1</span>
+            </div>
+          </div>
         </div>
-        <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1">Poin Maks Kategori</label>
-          <input type="number" id="edit-cfg-poin-kat" min="1" max="20" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+
+        <!-- Mode Pengaman & Pembahasan -->
+        <div class="space-y-2">
+          <label class="flex items-center gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:bg-stone-50">
+            <input type="checkbox" id="edit-cfg-anti-cheat" class="w-4 h-4 accent-teal-700 rounded" />
+            <div>
+              <span class="font-bold text-slate-800 block">Aktifkan Pengaman Layar Penuh & Keluar Layar (3x)</span>
+              <span class="text-[11px] text-slate-500">Centang untuk mode Ujian; lepas untuk latihan santai.</span>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:bg-stone-50">
+            <input type="checkbox" id="edit-cfg-show-pembahasan" class="w-4 h-4 accent-teal-700 rounded" />
+            <div>
+              <span class="font-bold text-slate-800 block">Tampilkan Pembahasan di Akhir</span>
+              <span class="text-[11px] text-slate-500">Centang setelah semua sesi kelas selesai agar murid bisa belajar.</span>
+            </div>
+          </label>
         </div>
       </div>
 
-      <div class="space-y-2.5 text-xs">
-        <label class="flex items-center gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:bg-stone-50">
-          <input type="checkbox" id="edit-cfg-anti-cheat" class="w-4 h-4 accent-teal-700 rounded" />
-          <div>
-            <span class="font-bold text-slate-800 block">Aktifkan Pengaman Layar Penuh & Keluar Layar (3x)</span>
-            <span class="text-[11px] text-slate-500">Centang untuk mode Ujian; lepas untuk latihan santai.</span>
-          </div>
-        </label>
-        <label class="flex items-center gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:bg-stone-50">
-          <input type="checkbox" id="edit-cfg-show-pembahasan" class="w-4 h-4 accent-teal-700 rounded" />
-          <div>
-            <span class="font-bold text-slate-800 block">Tampilkan Pembahasan di Akhir</span>
-            <span class="text-[11px] text-slate-500">Centang setelah semua sesi kelas selesai agar murid bisa belajar.</span>
-          </div>
-        </label>
+      <div class="px-5 py-3.5 border-t border-stone-200 bg-stone-50">
+        <button id="btn-simpan-edit-cfg" onclick="simpanEditPengaturan()" class="w-full py-3 px-4 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-sm transition">
+          Simpan Perubahan Pengaturan & Bobot
+        </button>
       </div>
-
-      <button id="btn-simpan-edit-cfg" onclick="simpanEditPengaturan()" class="w-full py-3 px-4 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-sm transition">
-        Simpan Perubahan Pengaturan
-      </button>
     </div>
   </div>
 
@@ -611,7 +654,7 @@
         <div class="space-y-4">
           <div class="flex items-center gap-2">
             <span class="w-6 h-6 rounded-full bg-teal-700 text-white text-xs font-bold flex items-center justify-center">2</span>
-            <h3 class="text-sm font-bold text-slate-800">Unggah File (.json) & Atur Pelaksanaan</h3>
+            <h3 class="text-sm font-bold text-slate-800">Unggah File (.json) & Atur Bobot Penilaian</h3>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -625,25 +668,62 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-stone-50 p-3.5 rounded-2xl border border-stone-200/80">
+          <!-- Durasi & PG Biasa -->
+          <div class="grid grid-cols-2 gap-3 bg-stone-50 p-3.5 rounded-2xl border border-stone-200/80">
             <div>
-              <label class="block text-[11px] font-bold text-slate-600 mb-1">Durasi (Menit)</label>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Durasi Ujian (Menit)</label>
               <input type="number" id="cfg-durasi" value="45" min="0" max="300" title="Isi 0 jika tanpa batas waktu" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
               <span class="text-[10px] text-slate-400 block text-center mt-0.5">0 = Tanpa Batas</span>
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-slate-600 mb-1">Poin Maks PG</label>
-              <input type="number" id="cfg-poin-pg" value="1" min="1" max="20" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">PG Biasa: Poin Benar</label>
+              <input type="number" id="cfg-poin-pg" value="1" min="0" max="50" step="0.5" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+              <span class="text-[10px] text-slate-400 block text-center mt-0.5">Salah / Kosong = 0</span>
             </div>
-            <div>
-              <label class="block text-[11px] font-bold text-slate-600 mb-1">Poin Maks MCMA</label>
-              <input type="number" id="cfg-poin-mcma" value="3" min="1" max="20" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
-              <span class="text-[10px] text-slate-400 block text-center mt-0.5">Sebagian = 1 poin</span>
+          </div>
+
+          <!-- Bobot Poin MCMA & Kategori -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="bg-teal-50/50 p-3.5 rounded-2xl border border-teal-200/80 space-y-2">
+              <div class="text-[11px] font-extrabold text-teal-900">Bobot Poin MCMA</div>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-700 mb-1">Benar Semua</label>
+                  <input type="number" id="cfg-poin-mcma" value="3" min="0" max="50" step="0.5" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+                  <span class="text-[10px] text-slate-500 block text-center mt-0.5">Maksimal</span>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-700 mb-1">Sebagian Murni</label>
+                  <input type="number" id="cfg-poin-mcma-murni" value="2" min="0" max="50" step="0.5" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+                  <span class="text-[10px] text-slate-500 block text-center mt-0.5">Tanpa salah</span>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-700 mb-1">Sebagian Campur</label>
+                  <input type="number" id="cfg-poin-mcma-campur" value="1" min="0" max="50" step="0.5" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+                  <span class="text-[10px] text-slate-500 block text-center mt-0.5">Ada salah</span>
+                </div>
+              </div>
             </div>
-            <div>
-              <label class="block text-[11px] font-bold text-slate-600 mb-1">Poin Maks Kategori</label>
-              <input type="number" id="cfg-poin-kat" value="3" min="1" max="20" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
-              <span class="text-[10px] text-slate-400 block text-center mt-0.5">Sebagian = 1 poin</span>
+
+            <div class="bg-indigo-50/50 p-3.5 rounded-2xl border border-indigo-200/80 space-y-2">
+              <div class="text-[11px] font-extrabold text-indigo-900">Bobot Poin Kategori (3 Pernyataan)</div>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-700 mb-1">3 Benar</label>
+                  <input type="number" id="cfg-poin-kat" value="3" min="0" max="50" step="0.5" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+                  <span class="text-[10px] text-slate-500 block text-center mt-0.5">Maksimal</span>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-700 mb-1">2 Benar</label>
+                  <input type="number" id="cfg-poin-kat2" value="2" min="0" max="50" step="0.5" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+                  <span class="text-[10px] text-slate-500 block text-center mt-0.5">Sebagian 2</span>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-700 mb-1">1 Benar</label>
+                  <input type="number" id="cfg-poin-kat1" value="1" min="0" max="50" step="0.5" class="w-full px-2 py-1.5 rounded-xl border border-slate-300 text-sm font-bold text-center bg-white" />
+                  <span class="text-[10px] text-slate-500 block text-center mt-0.5">Sebagian 1</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -680,7 +760,7 @@
         <div class="flex items-center justify-between mb-4 pb-3 border-b border-stone-100">
           <div>
             <h3 class="text-base font-bold text-slate-800">Riwayat Bank Soal & Pantauan Kelas</h3>
-            <p class="text-xs text-slate-500">Klik <strong>Pratinjau & Kelola Soal</strong> untuk mengedit butir soal atau menempel screenshot.</p>
+            <p class="text-xs text-slate-500">Klik <strong>Edit Aturan</strong> kapan saja untuk mengubah bobot poin PG, MCMA, atau Kategori.</p>
           </div>
           <button onclick="muatRiwayatKuis()" class="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-slate-700 text-xs font-semibold transition">
             Muat Ulang
@@ -770,7 +850,18 @@
       kode: "",
       materi: "",
       soal: [],
-      config: { durasiMenit: 0, antiCheat: true, poinPG: 1, poinMCMA: 3, poinKat: 3, showPembahasan: true },
+      config: {
+        durasiMenit: 0,
+        antiCheat: true,
+        poinPG: 1,
+        poinMCMA: 3,
+        poinMCMASebagianMurni: 2,
+        poinMCMASebagianCampur: 1,
+        poinKat: 3,
+        poinKat2: 2,
+        poinKat1: 1,
+        showPembahasan: true
+      },
       answers: [],
       currentIndex: 0,
       nama: "",
@@ -851,7 +942,6 @@
       }
     });
 
-    // Blokir klik kanan & pintasan keyboard cetak/salin saat ujian
     document.addEventListener("contextmenu", (e) => {
       if (activeQuiz.isRunning) e.preventDefault();
     });
@@ -1316,9 +1406,13 @@
           activeQuiz.config = {
             durasiMenit: Number(data.config?.durasiMenit) || 0,
             antiCheat: data.config?.antiCheat !== false,
-            poinPG: Number(data.config?.poinPG) || 1,
-            poinMCMA: Number(data.config?.poinMCMA) || 3,
-            poinKat: Number(data.config?.poinKat) || 3,
+            poinPG: Number(data.config?.poinPG ?? 1),
+            poinMCMA: Number(data.config?.poinMCMA ?? 3),
+            poinMCMASebagianMurni: Number(data.config?.poinMCMASebagianMurni ?? 2),
+            poinMCMASebagianCampur: Number(data.config?.poinMCMASebagianCampur ?? 1),
+            poinKat: Number(data.config?.poinKat ?? 3),
+            poinKat2: Number(data.config?.poinKat2 ?? 2),
+            poinKat1: Number(data.config?.poinKat1 ?? 1),
             showPembahasan: data.config?.showPembahasan !== false
           };
           activeQuiz.soal = acakSoalDanOpsi(data.soal);
@@ -1380,7 +1474,6 @@
       btn.disabled = true;
       btn.textContent = "Memverifikasi Peserta di Server...";
 
-      // Aktifkan layar penuh langsung saat tombol diklik
       if (activeQuiz.config.antiCheat) {
         aktifkanLayarPenuh();
       }
@@ -1402,7 +1495,6 @@
         });
         const data = await res.json();
 
-        // Tolak akses jika peserta sudah tercatat SELESAI di server
         if (data.status === "already_finished") {
           keluarLayarPenuh();
           showCustomModal({
@@ -2182,9 +2274,13 @@ ${JSON_SCHEMA_GUIDE}`;
 
       const config = {
         durasiMenit: parseInt(document.getElementById("cfg-durasi").value) || 0,
-        poinPG: parseInt(document.getElementById("cfg-poin-pg").value) || 1,
-        poinMCMA: parseInt(document.getElementById("cfg-poin-mcma").value) || 3,
-        poinKat: parseInt(document.getElementById("cfg-poin-kat").value) || 3,
+        poinPG: parseFloat(document.getElementById("cfg-poin-pg").value) || 0,
+        poinMCMA: parseFloat(document.getElementById("cfg-poin-mcma").value) || 0,
+        poinMCMASebagianMurni: parseFloat(document.getElementById("cfg-poin-mcma-murni").value) || 0,
+        poinMCMASebagianCampur: parseFloat(document.getElementById("cfg-poin-mcma-campur").value) || 0,
+        poinKat: parseFloat(document.getElementById("cfg-poin-kat").value) || 0,
+        poinKat2: parseFloat(document.getElementById("cfg-poin-kat2").value) || 0,
+        poinKat1: parseFloat(document.getElementById("cfg-poin-kat1").value) || 0,
         antiCheat: document.getElementById("cfg-anti-cheat").checked,
         showPembahasan: document.getElementById("cfg-show-pembahasan").checked
       };
@@ -2819,7 +2915,11 @@ ${JSON_SCHEMA_GUIDE}`;
       document.getElementById("edit-cfg-durasi").value = cfg.durasiMenit ?? 0;
       document.getElementById("edit-cfg-poin-pg").value = cfg.poinPG ?? 1;
       document.getElementById("edit-cfg-poin-mcma").value = cfg.poinMCMA ?? 3;
+      document.getElementById("edit-cfg-poin-mcma-murni").value = cfg.poinMCMASebagianMurni ?? 2;
+      document.getElementById("edit-cfg-poin-mcma-campur").value = cfg.poinMCMASebagianCampur ?? 1;
       document.getElementById("edit-cfg-poin-kat").value = cfg.poinKat ?? 3;
+      document.getElementById("edit-cfg-poin-kat2").value = cfg.poinKat2 ?? 2;
+      document.getElementById("edit-cfg-poin-kat1").value = cfg.poinKat1 ?? 1;
       document.getElementById("edit-cfg-anti-cheat").checked = cfg.antiCheat !== false;
       document.getElementById("edit-cfg-show-pembahasan").checked = cfg.showPembahasan !== false;
 
@@ -2836,9 +2936,13 @@ ${JSON_SCHEMA_GUIDE}`;
 
       const newConfig = {
         durasiMenit: parseInt(document.getElementById("edit-cfg-durasi").value) || 0,
-        poinPG: parseInt(document.getElementById("edit-cfg-poin-pg").value) || 1,
-        poinMCMA: parseInt(document.getElementById("edit-cfg-poin-mcma").value) || 3,
-        poinKat: parseInt(document.getElementById("edit-cfg-poin-kat").value) || 3,
+        poinPG: parseFloat(document.getElementById("edit-cfg-poin-pg").value) || 0,
+        poinMCMA: parseFloat(document.getElementById("edit-cfg-poin-mcma").value) || 0,
+        poinMCMASebagianMurni: parseFloat(document.getElementById("edit-cfg-poin-mcma-murni").value) || 0,
+        poinMCMASebagianCampur: parseFloat(document.getElementById("edit-cfg-poin-mcma-campur").value) || 0,
+        poinKat: parseFloat(document.getElementById("edit-cfg-poin-kat").value) || 0,
+        poinKat2: parseFloat(document.getElementById("edit-cfg-poin-kat2").value) || 0,
+        poinKat1: parseFloat(document.getElementById("edit-cfg-poin-kat1").value) || 0,
         antiCheat: document.getElementById("edit-cfg-anti-cheat").checked,
         showPembahasan: document.getElementById("edit-cfg-show-pembahasan").checked
       };
@@ -2855,7 +2959,7 @@ ${JSON_SCHEMA_GUIDE}`;
         const data = await res.json();
         if (data.status === "success") {
           tutupModalId("edit-config-modal");
-          showToast(`Pengaturan kuis ${editingConfigKode} berhasil diperbarui!`, "success");
+          showToast(`Pengaturan & bobot kuis ${editingConfigKode} berhasil diperbarui!`, "success");
           muatRiwayatKuis();
         } else {
           throw new Error(data.message || "Gagal menyimpan.");
@@ -2864,7 +2968,7 @@ ${JSON_SCHEMA_GUIDE}`;
         showToast("Gagal memperbarui pengaturan kuis.", "warning");
       } finally {
         btn.disabled = false;
-        btn.textContent = "Simpan Perubahan Pengaturan";
+        btn.textContent = "Simpan Perubahan Pengaturan & Bobot";
       }
     }
 
