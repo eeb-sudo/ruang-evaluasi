@@ -47,11 +47,27 @@
     </div>
   </div>
 
-  <!-- LIGHTBOX ZOOM GAMBAR (KETUK UNTUK PERBESAR) -->
-  <div id="image-zoom-modal" onclick="tutupModalId('image-zoom-modal')" class="fixed inset-0 z-[75] hidden items-center justify-center bg-slate-900/85 backdrop-blur-xs p-3 sm:p-6 cursor-zoom-out">
-    <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center">
-      <img id="zoomed-image-el" src="" alt="Perbesaran Gambar" class="max-w-full max-h-[82vh] rounded-2xl shadow-2xl bg-white p-1.5 object-contain" />
-      <span class="mt-3 px-4 py-1.5 rounded-full bg-white/15 text-white text-xs font-semibold">Ketuk di mana saja untuk menutup</span>
+  <!-- LIGHTBOX ZOOM GAMBAR DENGAN TOMBOL ZOOM IN (+) & ZOOM OUT (-) -->
+  <div id="image-zoom-modal" onclick="tutupModalId('image-zoom-modal')" class="fixed inset-0 z-[75] hidden flex-col bg-slate-900/90 backdrop-blur-xs">
+    <!-- Area Gambar yang Bisa Digulir Saat Diperbesar -->
+    <div id="zoom-scroll-container" class="flex-1 w-full overflow-auto flex items-center justify-center p-4">
+      <img id="zoomed-image-el" src="" alt="Perbesaran Gambar" onclick="event.stopPropagation()" class="rounded-2xl shadow-2xl bg-white p-1.5 transition-all duration-150" style="max-width: 92vw; max-height: 76vh;" />
+    </div>
+
+    <!-- Bilah Kontrol Zoom In / Zoom Out -->
+    <div onclick="event.stopPropagation()" class="w-full py-3.5 px-4 bg-slate-950/90 border-t border-white/10 flex flex-wrap items-center justify-center gap-2.5">
+      <button type="button" onclick="ubahSkalaZoom(-0.25)" class="w-10 h-10 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-white font-extrabold text-lg flex items-center justify-center transition" title="Perkecil Gambar">
+        −
+      </button>
+      <button type="button" onclick="resetSkalaZoom()" id="zoom-level-label" class="px-3.5 h-10 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-mono font-bold transition" title="Kembalikan Ukuran Normal">
+        100%
+      </button>
+      <button type="button" onclick="ubahSkalaZoom(0.25)" class="w-10 h-10 rounded-xl bg-teal-600 hover:bg-teal-500 active:scale-95 text-white font-extrabold text-lg flex items-center justify-center transition" title="Perbesar Gambar">
+        +
+      </button>
+      <button type="button" onclick="tutupModalId('image-zoom-modal')" class="ml-2 px-4 h-10 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition">
+        Tutup
+      </button>
     </div>
   </div>
 
@@ -149,8 +165,13 @@
         </div>
 
         <div>
-          <label class="block font-bold text-slate-700 mb-1">Teks Pertanyaan (Mendukung Tabel |---| & Rumus $...$)</label>
-          <textarea id="eq-pertanyaan" rows="3" placeholder="Ketik teks pertanyaan di sini..." class="w-full p-2.5 rounded-xl border border-slate-300 bg-white leading-relaxed font-medium"></textarea>
+          <div class="flex items-center justify-between mb-1">
+            <label class="font-bold text-slate-700">Teks Pertanyaan (Mendukung Tabel |---| & Rumus $...$)</label>
+            <button type="button" onclick="sisipkanKerangkaTabel()" class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold transition">
+              + Sisipkan Tabel
+            </button>
+          </div>
+          <textarea id="eq-pertanyaan" rows="4" placeholder="Ketik teks pertanyaan di sini..." class="w-full p-2.5 rounded-xl border border-slate-300 bg-white leading-relaxed font-medium font-mono text-xs"></textarea>
         </div>
 
         <div class="p-3.5 rounded-2xl bg-stone-50 border border-stone-200 space-y-2.5">
@@ -193,7 +214,7 @@
         </button>
       </div>
       <div class="px-6 py-2.5 bg-teal-50/70 border-b border-teal-100 text-[11px] text-teal-900">
-        Tips: Klik <strong>Edit Soal</strong> untuk memperbaiki teks/kunci, atau klik kotak <strong>Ctrl+V Screenshot</strong> untuk menempel gambar ke Google Drive.
+        Tips: Klik <strong>Edit Soal</strong> untuk memperbaiki teks/tabel, atau atur <strong>Posisi Gambar</strong> (Atas / Tengah / Bawah Pertanyaan).
       </div>
       <div id="preview-body" class="p-6 overflow-y-auto space-y-4 selectable-text text-sm"></div>
     </div>
@@ -354,12 +375,22 @@
           <span id="q-type-badge" class="text-xs font-medium text-slate-400">Pilihan Ganda</span>
         </div>
 
+        <!-- Slot Gambar: Atas -->
+        <div id="q-image-slot-atas" class="hidden mb-5 text-center"></div>
+
+        <!-- Wacana -->
         <div id="q-wacana-box" class="hidden mb-5 p-4 rounded-2xl bg-stone-50 border border-stone-200 text-sm text-slate-700 leading-relaxed"></div>
-        <div id="q-image-box" class="hidden mb-5 text-center">
-          <img id="q-image-el" src="" alt="Ilustrasi Soal" onclick="bukaZoomGambar(this.src)" onerror="this.parentElement.classList.add('hidden')" class="max-h-64 rounded-2xl border border-stone-200 mx-auto object-contain bg-white p-1 cursor-zoom-in hover:opacity-95 transition" />
-          <span class="text-[11px] text-slate-400 mt-1 inline-block">Ketuk gambar untuk memperbesar</span>
-        </div>
-        <div id="q-question-text" class="text-base sm:text-lg font-semibold text-slate-800 leading-relaxed mb-6"></div>
+
+        <!-- Slot Gambar: Tengah (Antara Wacana & Pertanyaan) -->
+        <div id="q-image-slot-tengah" class="hidden mb-5 text-center"></div>
+
+        <!-- Pertanyaan -->
+        <div id="q-question-text" class="text-base sm:text-lg font-semibold text-slate-800 leading-relaxed mb-5"></div>
+
+        <!-- Slot Gambar: Bawah Pertanyaan -->
+        <div id="q-image-slot-bawah" class="hidden mb-6 text-center"></div>
+
+        <!-- Opsi Jawaban -->
         <div id="q-options-container" class="space-y-3"></div>
 
         <div class="mt-8 pt-5 border-t border-stone-100 flex items-center justify-between gap-3">
@@ -699,6 +730,7 @@
     let currentParticipantsCache = [];
     let editingConfigKode = "";
     let previewingQuizIdx = -1;
+    let currentZoomScale = 1;
 
     // State untuk Modal Edit/Tambah Butir Soal
     let editorQuestionState = {
@@ -708,7 +740,8 @@
       jawabanPG: 0,
       jawabanMCMA: [],
       jawabanKat: [0, 0, 0],
-      gambar: ""
+      gambar: "",
+      posisiGambar: "atas"
     };
 
     // ==================== PENERJEMAH TABEL TEKS (MARKDOWN) & HTML SAFE ====================
@@ -729,7 +762,6 @@
         const currentTrim = lines[i].trim();
         const nextTrim = (i + 1 < lines.length) ? lines[i + 1].trim() : "";
 
-        // Deteksi header tabel + baris pemisah |---|---|
         if (currentTrim.includes("|") && /^\|?[\s:-]+\|[\s|:-]+\|?$/.test(nextTrim)) {
           const parseRow = (rowStr) => {
             let s = rowStr.trim();
@@ -740,7 +772,7 @@
 
           const headers = parseRow(currentTrim);
           const bodyRows = [];
-          i += 2; // Lewati header dan garis pemisah
+          i += 2;
 
           while (i < lines.length && lines[i].trim().includes("|")) {
             bodyRows.push(parseRow(lines[i]));
@@ -819,7 +851,7 @@
       });
     }
 
-    // ==================== UI HELPERS ====================
+    // ==================== UI HELPERS & LIGHTBOX ZOOM ====================
     function showToast(message, type = "info") {
       const container = document.getElementById("toast-container");
       const toast = document.createElement("div");
@@ -898,10 +930,45 @@
 
     function bukaZoomGambar(src) {
       if (!src) return;
-      document.getElementById("zoomed-image-el").src = src;
+      const imgEl = document.getElementById("zoomed-image-el");
+      imgEl.src = src;
+      resetSkalaZoom();
       const modal = document.getElementById("image-zoom-modal");
       modal.classList.remove("hidden");
       modal.classList.add("flex");
+    }
+
+    function ubahSkalaZoom(delta) {
+      currentZoomScale = Math.min(3.0, Math.max(0.5, Number((currentZoomScale + delta).toFixed(2))));
+      terapkanSkalaZoom();
+    }
+
+    function resetSkalaZoom() {
+      currentZoomScale = 1;
+      terapkanSkalaZoom();
+    }
+
+    function terapkanSkalaZoom() {
+      const imgEl = document.getElementById("zoomed-image-el");
+      const scrollBox = document.getElementById("zoom-scroll-container");
+      document.getElementById("zoom-level-label").textContent = `${Math.round(currentZoomScale * 100)}%`;
+
+      if (currentZoomScale === 1) {
+        imgEl.style.width = "auto";
+        imgEl.style.maxWidth = "92vw";
+        imgEl.style.maxHeight = "76vh";
+        scrollBox.classList.add("items-center", "justify-center");
+      } else {
+        const baseWidth = Math.min(window.innerWidth * 0.9, 760);
+        imgEl.style.maxWidth = "none";
+        imgEl.style.maxHeight = "none";
+        imgEl.style.width = `${Math.round(baseWidth * currentZoomScale)}px`;
+        if (currentZoomScale > 1) {
+          scrollBox.classList.remove("items-center", "justify-center");
+        } else {
+          scrollBox.classList.add("items-center", "justify-center");
+        }
+      }
     }
 
     function switchView(viewId) {
@@ -1293,22 +1360,32 @@
       };
       document.getElementById("q-type-badge").textContent = typeLabels[q.tipe] || "Soal";
 
+      // Reset semua slot gambar
+      const slotAtas = document.getElementById("q-image-slot-atas");
+      const slotTengah = document.getElementById("q-image-slot-tengah");
+      const slotBawah = document.getElementById("q-image-slot-bawah");
+      [slotAtas, slotTengah, slotBawah].forEach(el => {
+        el.innerHTML = "";
+        el.classList.add("hidden");
+      });
+
+      const hasWacana = q.wacana && q.wacana.trim() !== "";
       const wacanaBox = document.getElementById("q-wacana-box");
-      if (q.wacana && q.wacana.trim() !== "") {
+      if (hasWacana) {
         wacanaBox.innerHTML = renderFormattedText(q.wacana);
         wacanaBox.classList.remove("hidden");
       } else {
         wacanaBox.classList.add("hidden");
       }
 
-      const imageBox = document.getElementById("q-image-box");
-      const imageEl = document.getElementById("q-image-el");
       if (q.gambar && q.gambar.trim() !== "") {
-        imageEl.src = q.gambar.trim();
-        imageBox.classList.remove("hidden");
-      } else {
-        imageEl.src = "";
-        imageBox.classList.add("hidden");
+        const pos = q.posisiGambar || "atas";
+        const targetSlot = pos === "bawah" ? slotBawah : (pos === "tengah" && hasWacana ? slotTengah : slotAtas);
+        targetSlot.innerHTML = `
+          <img src="${q.gambar.trim()}" alt="Ilustrasi Soal" onclick="bukaZoomGambar(this.src)" onerror="this.parentElement.classList.add('hidden')" class="max-h-64 rounded-2xl border border-stone-200 mx-auto object-contain bg-white p-1 cursor-zoom-in hover:opacity-95 transition" />
+          <span class="text-[11px] text-slate-400 mt-1 inline-block">Ketuk gambar untuk memperbesar (+ / -)</span>
+        `;
+        targetSlot.classList.remove("hidden");
       }
 
       document.getElementById("q-question-text").innerHTML = renderFormattedText(q.pertanyaan);
@@ -1781,9 +1858,15 @@
       document.getElementById("rincian-butir-label").textContent = `${jmlPG} PG • ${jmlMCMA} MCMA • ${jmlKat} Kategori`;
     }
 
-    const JSON_SCHEMA_GUIDE = `Aturan Penulisan Matematika & Gambar:
+    const JSON_SCHEMA_GUIDE = `Aturan Penulisan Matematika, Tabel & Gambar:
 1. Format Matematika (LaTeX): Setiap pecahan, pangkat, akar, atau rumus matematika WAJIB ditulis dengan tanda dolar tunggal agar dirender rapi (contoh: $\\frac{1}{2}$, $2^3$, $\\sqrt{16}$, $\\pi r^2$). Jangan menulis pecahan datar seperti 1/2 jika merupakan ekspresi matematika.
-2. Kolom "gambar": Biarkan kosong "" (gambar screenshot akan ditempel guru melalui menu Pratinjau setelah file diunggah).
+2. Format Tabel Data: Jika ada tabel pada bacaan/wacana atau pertanyaan, WAJIB ditulis dalam format tabel Markdown menggunakan tanda pipa | dan garis pemisah |---|---| pada baris baru (JANGAN ditulis dalam bentuk kalimat "Baris 1:..."). Contoh:
+Perhatikan tabel berikut!
+| Tepung (kg) | Gula (kg) |
+|---|---|
+| 3 | 2 |
+| 6 | 4 |
+3. Kolom "gambar": Biarkan kosong "" (gambar screenshot akan ditempel guru melalui menu Pratinjau setelah file diunggah).
 Gunakan struktur JSON array persis seperti format berikut tanpa teks tambahan di luar JSON:
 [
   {
@@ -2039,6 +2122,26 @@ ${JSON_SCHEMA_GUIDE}`;
         }
 
         const hasImg = q.gambar && q.gambar.trim() !== "";
+        const posImg = q.posisiGambar || "atas";
+        const imgBlockHTML = hasImg
+          ? `<div class="my-2"><img src="${q.gambar}" alt="Gambar Soal" onclick="bukaZoomGambar(this.src)" onerror="this.style.display='none'" class="max-h-48 rounded-xl border border-stone-200 bg-white p-1 cursor-zoom-in" /></div>`
+          : "";
+
+        const wacanaHTML = q.wacana
+          ? `<div class="p-2.5 rounded-xl bg-white border border-stone-200 text-xs text-slate-600">${renderFormattedText(q.wacana)}</div>`
+          : "";
+
+        const pertanyaanHTML = `<div class="font-bold text-slate-800">${renderFormattedText(q.pertanyaan)}</div>`;
+
+        let orderedContent = "";
+        if (posImg === "bawah") {
+          orderedContent = `${wacanaHTML}${pertanyaanHTML}${imgBlockHTML}`;
+        } else if (posImg === "tengah" && q.wacana) {
+          orderedContent = `${wacanaHTML}${imgBlockHTML}${pertanyaanHTML}`;
+        } else {
+          orderedContent = `${imgBlockHTML}${wacanaHTML}${pertanyaanHTML}`;
+        }
+
         const card = document.createElement("div");
         card.className = "p-4 rounded-2xl bg-stone-50 border border-stone-200 space-y-2.5";
         card.innerHTML = `
@@ -2055,16 +2158,21 @@ ${JSON_SCHEMA_GUIDE}`;
                 File Gambar
                 <input type="file" accept="image/*" class="hidden" onchange="handleFileScreenshot(this, ${qIdx})" />
               </label>
-              ${hasImg ? `<button onclick="hapusGambarSoal(${qIdx})" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-semibold transition">Hapus Gambar</button>` : ""}
+              ${hasImg ? `
+                <select onchange="ubahPosisiGambar(${qIdx}, this.value)" class="px-2 py-1 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-900 text-[11px] font-bold cursor-pointer" title="Atur Letak Gambar">
+                  <option value="atas" ${posImg === "atas" ? "selected" : ""}>Posisi: Atas</option>
+                  <option value="tengah" ${posImg === "tengah" ? "selected" : ""}>Posisi: Tengah</option>
+                  <option value="bawah" ${posImg === "bawah" ? "selected" : ""}>Posisi: Bawah</option>
+                </select>
+                <button onclick="hapusGambarSoal(${qIdx})" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-semibold transition">Hapus Gambar</button>
+              ` : ""}
               <button onclick="konfirmasiHapusButirSoal(${qIdx})" class="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-semibold transition">
                 Hapus
               </button>
             </div>
           </div>
 
-          ${q.wacana ? `<div class="p-2.5 rounded-xl bg-white border border-stone-200 text-xs text-slate-600">${renderFormattedText(q.wacana)}</div>` : ""}
-          ${hasImg ? `<div><img src="${q.gambar}" alt="Gambar Soal" onclick="bukaZoomGambar(this.src)" onerror="this.style.display='none'" class="max-h-48 rounded-xl border border-stone-200 bg-white p-1 cursor-zoom-in" /></div>` : ""}
-          <div class="font-bold text-slate-800">${renderFormattedText(q.pertanyaan)}</div>
+          ${orderedContent}
           ${opsiHTML}
           <div class="pt-2 border-t border-stone-200/70 text-xs text-slate-500">Pembahasan: ${renderFormattedText(q.pembahasan || "-")}</div>
         `;
@@ -2086,7 +2194,43 @@ ${JSON_SCHEMA_GUIDE}`;
       renderAllMath(body);
     }
 
+    async function ubahPosisiGambar(qIdx, newPos) {
+      const item = riwayatListCache[previewingQuizIdx];
+      if (!item || !item.soal[qIdx]) return;
+
+      const updatedSoalList = JSON.parse(JSON.stringify(item.soal));
+      updatedSoalList[qIdx].posisiGambar = newPos;
+      item.soal = updatedSoalList;
+      pratinjauKuis(previewingQuizIdx);
+      showToast(`Menyimpan posisi gambar (${newPos})...`, "info");
+
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "update_quiz_questions",
+            kodeKuis: item.kode,
+            soal: updatedSoalList
+          })
+        });
+        const data = await res.json();
+        if (data.status === "success") {
+          showToast("Posisi gambar diperbarui!", "success");
+        }
+      } catch (e) {
+        showToast("Gagal menyimpan posisi gambar.", "warning");
+      }
+    }
+
     // ==================== EDITOR BUTIR SOAL (EDIT & TAMBAH MANUAL) ====================
+    function sisipkanKerangkaTabel() {
+      const ta = document.getElementById("eq-pertanyaan");
+      const template = `\n| Kolom 1 | Kolom 2 |\n|---|---|\n| Isi 1 | Isi 2 |\n| Isi 3 | Isi 4 |\n`;
+      ta.value = ta.value + template;
+      ta.focus();
+      showToast("Kerangka tabel disisipkan. Silakan ganti teks di antara tanda |.", "info");
+    }
+
     function bukaEditorButirSoal(qIdx) {
       const item = riwayatListCache[previewingQuizIdx];
       if (!item) return;
@@ -2101,7 +2245,8 @@ ${JSON_SCHEMA_GUIDE}`;
           jawabanPG: q.tipe === "pg" ? Number(q.jawaban) || 0 : 0,
           jawabanMCMA: q.tipe === "mcma" && Array.isArray(q.jawaban) ? [...q.jawaban].map(Number) : [],
           jawabanKat: q.tipe === "kategori" && Array.isArray(q.jawaban) ? [...q.jawaban].map(Number) : [0, 0, 0],
-          gambar: q.gambar || ""
+          gambar: q.gambar || "",
+          posisiGambar: q.posisiGambar || "atas"
         };
         document.getElementById("eq-tipe").value = editorQuestionState.tipe;
         document.getElementById("eq-wacana").value = q.wacana || "";
@@ -2119,7 +2264,8 @@ ${JSON_SCHEMA_GUIDE}`;
           jawabanPG: 0,
           jawabanMCMA: [],
           jawabanKat: [0, 0, 0],
-          gambar: ""
+          gambar: "",
+          posisiGambar: "atas"
         };
         document.getElementById("eq-tipe").value = "pg";
         document.getElementById("eq-wacana").value = "";
@@ -2264,6 +2410,7 @@ ${JSON_SCHEMA_GUIDE}`;
         tipe: tipe,
         wacana: document.getElementById("eq-wacana").value.trim(),
         gambar: editorQuestionState.gambar || "",
+        posisiGambar: editorQuestionState.posisiGambar || "atas",
         pertanyaan: pertanyaan,
         opsi: cleanOpsi,
         pembahasan: document.getElementById("eq-pembahasan").value.trim()
