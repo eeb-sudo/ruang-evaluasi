@@ -30,6 +30,20 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between bg-stone-50 text-slate-800">
 
+  <!-- TIRAI LAYAR HITAM INSTAN (AKTIF SAAT LAYAR KEHILANGAN FOKUS) -->
+  <div id="blackout-curtain" class="fixed inset-0 z-[95] hidden flex-col items-center justify-center bg-black text-white p-6 text-center">
+    <div class="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center mb-4">
+      <svg class="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+    </div>
+    <h3 class="text-lg font-extrabold mb-1">Layar Ujian Dikunci Sementara</h3>
+    <p class="text-xs text-slate-400 max-w-xs mb-6 leading-relaxed">
+      Konten soal disembunyikan secara otomatis karena layar terdeteksi berpindah atau kehilangan fokus.
+    </p>
+    <button type="button" onclick="bukaTiraiHitam()" class="px-6 py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow-lg transition">
+      Kembali ke Halaman Ujian
+    </button>
+  </div>
+
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toast-container" class="fixed top-4 right-4 z-[80] flex flex-col gap-2 max-w-xs w-full pointer-events-none"></div>
 
@@ -89,7 +103,7 @@
     </div>
   </div>
 
-  <!-- LIGHTBOX GAMBAR (GESTUR CUBIT 2 JARI AKTIF KHUSUS SAAT GAMBAR DIBUKA) -->
+  <!-- LIGHTBOX GAMBAR -->
   <div id="image-zoom-modal" onclick="tutupModalId('image-zoom-modal')" class="fixed inset-0 z-[75] hidden flex-col bg-slate-900/90 backdrop-blur-xs">
     <div class="w-full py-3 px-4 flex items-center justify-between text-white text-xs bg-slate-950/80 border-b border-white/10">
       <span class="text-slate-300">Cubit layar dengan 2 jari untuk memperbesar / memperkecil</span>
@@ -97,7 +111,6 @@
         Tutup
       </button>
     </div>
-
     <div class="flex-1 w-full overflow-auto flex items-center justify-center p-4 pinch-zoom-area">
       <img id="zoomed-image-el" src="" alt="Perbesaran Gambar" onclick="event.stopPropagation()" class="max-w-full max-h-[82vh] rounded-2xl shadow-2xl bg-white p-1.5 object-contain pinch-zoom-area" />
     </div>
@@ -140,7 +153,7 @@
         <label class="flex items-center gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:bg-stone-50">
           <input type="checkbox" id="edit-cfg-anti-cheat" class="w-4 h-4 accent-teal-700 rounded" />
           <div>
-            <span class="font-bold text-slate-800 block">Aktifkan Pengaman Keluar Layar (3x)</span>
+            <span class="font-bold text-slate-800 block">Aktifkan Pengaman Layar Penuh & Keluar Layar (3x)</span>
             <span class="text-[11px] text-slate-500">Centang untuk mode Ujian; lepas untuk latihan santai.</span>
           </div>
         </label>
@@ -363,7 +376,7 @@
               <input type="text" id="bio-kelas" autocomplete="off" placeholder="Contoh: 6A" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600" />
             </div>
           </div>
-          <button onclick="mulaiKuisSekarang()" class="w-full mt-2 py-3.5 px-5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-sm shadow-sm transition">
+          <button id="btn-mulai-sekarang" onclick="mulaiKuisSekarang()" class="w-full mt-2 py-3.5 px-5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-sm shadow-sm transition">
             Mulai Mengerjakan Sekarang
           </button>
         </div>
@@ -379,6 +392,9 @@
             <span id="quiz-student-badge" class="font-bold text-slate-800">Peserta</span>
           </div>
           <div class="flex items-center gap-2">
+            <button type="button" id="btn-reenter-fs" onclick="aktifkanLayarPenuh()" class="hidden px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 text-[11px] font-bold">
+              Layar Penuh
+            </button>
             <span id="quiz-timer-label" class="text-[11px] text-slate-400">Waktu:</span>
             <span id="quiz-timer" class="text-xs font-mono font-bold text-teal-800 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200">00:00</span>
           </div>
@@ -428,13 +444,13 @@
         <!-- Wacana -->
         <div id="q-wacana-box" class="hidden mb-5 p-4 rounded-2xl bg-stone-50 border border-stone-200 text-sm text-slate-700 leading-relaxed"></div>
 
-        <!-- Slot Gambar: Tengah (Antara Wacana & Pertanyaan) -->
+        <!-- Slot Gambar: Tengah -->
         <div id="q-image-slot-tengah" class="hidden mb-5 text-center"></div>
 
         <!-- Pertanyaan -->
         <div id="q-question-text" class="text-base sm:text-lg font-semibold text-slate-800 leading-relaxed mb-5"></div>
 
-        <!-- Slot Gambar: Bawah Pertanyaan -->
+        <!-- Slot Gambar: Bawah -->
         <div id="q-image-slot-bawah" class="hidden mb-6 text-center"></div>
 
         <!-- Opsi Jawaban -->
@@ -537,8 +553,6 @@
 
     <!-- ==================== VIEW 5: DASHBOARD GURU ==================== -->
     <section id="view-guru" class="hidden w-full max-w-4xl space-y-6">
-      
-      <!-- Langkah 1: Dua Jalur Prompt AI -->
       <div class="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 shadow-sm">
         <div class="flex items-center justify-between pb-4 mb-6 border-b border-stone-100">
           <div>
@@ -594,7 +608,6 @@
 
         <hr class="my-6 border-stone-100" />
 
-        <!-- Langkah 2: Unggah File JSON & Konfigurasi Ujian -->
         <div class="space-y-4">
           <div class="flex items-center gap-2">
             <span class="w-6 h-6 rounded-full bg-teal-700 text-white text-xs font-bold flex items-center justify-center">2</span>
@@ -638,7 +651,7 @@
             <label class="flex items-center gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:bg-stone-50">
               <input type="checkbox" id="cfg-anti-cheat" checked class="w-4 h-4 accent-teal-700 rounded" />
               <div>
-                <span class="font-bold text-slate-800 block">Aktifkan Pengaman Keluar Layar (3x)</span>
+                <span class="font-bold text-slate-800 block">Aktifkan Pengaman Layar Penuh & Keluar Layar (3x)</span>
                 <span class="text-[11px] text-slate-500">Centang untuk Ujian; lepas untuk latihan santai.</span>
               </div>
             </label>
@@ -779,7 +792,6 @@
     let previewingQuizIdx = -1;
     let quizFontSizeMode = localStorage.getItem("quiz_font_size") || "normal";
 
-    // State untuk Modal Edit/Tambah Butir Soal
     let editorQuestionState = {
       qIdx: -1,
       tipe: "pg",
@@ -790,6 +802,68 @@
       gambar: "",
       posisiGambar: "atas"
     };
+
+    // ==================== KONTROL LAYAR PENUH & TIRAI HITAM ====================
+    function aktifkanLayarPenuh() {
+      const el = document.documentElement;
+      if (el.requestFullscreen) {
+        el.requestFullscreen().catch(() => {});
+      } else if (el.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen();
+      }
+      const btnFs = document.getElementById("btn-reenter-fs");
+      if (btnFs) btnFs.classList.add("hidden");
+    }
+
+    function keluarLayarPenuh() {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      }
+    }
+
+    function tampilkanTiraiHitam() {
+      if (!activeQuiz.isRunning || !activeQuiz.config.antiCheat) return;
+      const curtain = document.getElementById("blackout-curtain");
+      curtain.classList.remove("hidden");
+      curtain.classList.add("flex");
+    }
+
+    function bukaTiraiHitam() {
+      const curtain = document.getElementById("blackout-curtain");
+      curtain.classList.add("hidden");
+      curtain.classList.remove("flex");
+      if (activeQuiz.isRunning && activeQuiz.config.antiCheat) {
+        aktifkanLayarPenuh();
+      }
+    }
+
+    document.addEventListener("fullscreenchange", () => {
+      if (!activeQuiz.isRunning || !activeQuiz.config.antiCheat) return;
+      if (!document.fullscreenElement) {
+        const btnFs = document.getElementById("btn-reenter-fs");
+        if (btnFs) btnFs.classList.remove("hidden");
+        catatPelanggaranLayar("Kamu keluar dari mode layar penuh.");
+      } else {
+        const btnFs = document.getElementById("btn-reenter-fs");
+        if (btnFs) btnFs.classList.add("hidden");
+      }
+    });
+
+    // Blokir klik kanan & pintasan keyboard cetak/salin saat ujian
+    document.addEventListener("contextmenu", (e) => {
+      if (activeQuiz.isRunning) e.preventDefault();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (!activeQuiz.isRunning) return;
+      if (e.key === "PrintScreen" || (e.ctrlKey && ["c", "p", "s", "u"].includes(e.key.toLowerCase()))) {
+        e.preventDefault();
+        tampilkanTiraiHitam();
+        showToast("Tindakan ini tidak diizinkan selama ujian berlangsung.", "warning");
+      }
+    });
 
     // ==================== PENGATUR UKURAN FONT HALAMAN KUIS ====================
     function aturUkuranFontKuis(mode) {
@@ -910,7 +984,7 @@
       }
     }
 
-    // ==================== KOMPRESI GAMBAR SCREENSHOT (RESOLUSI TINGGI) ====================
+    // ==================== KOMPRESI GAMBAR SCREENSHOT ====================
     function compressImageToBase64(fileOrBlob, maxWidth = 1400, quality = 0.85) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -944,7 +1018,7 @@
       });
     }
 
-    // ==================== UI HELPERS & LIGHTBOX GAMBAR (ZOOM KHUSUS GAMBAR) ====================
+    // ==================== UI HELPERS & LIGHTBOX GAMBAR ====================
     function showToast(message, type = "info") {
       const container = document.getElementById("toast-container");
       const toast = document.createElement("div");
@@ -1048,6 +1122,7 @@
     function kembaliKeLanding() {
       activeQuiz.isRunning = false;
       clearInterval(activeQuiz.timerInterval);
+      keluarLayarPenuh();
       switchView("view-landing");
     }
 
@@ -1060,7 +1135,7 @@
       document.body.removeChild(ta);
     }
 
-    // ==================== ACAK SOAL & OPSI (DENGAN INDEKS ASLI DARI SERVER) ====================
+    // ==================== ACAK SOAL & OPSI ====================
     function acakSoalDanOpsi(soalList) {
       const blocks = [];
       const wacanaMap = new Map();
@@ -1069,7 +1144,6 @@
         const soal = JSON.parse(JSON.stringify(rawSoal));
         if (!soal.noAsli) soal.noAsli = idx + 1;
 
-        // Normalisasi opsi menjadi objek { idxAsli, teks }
         const normalizedOpsi = (soal.opsi || []).map((item, oIdx) => {
           if (item && typeof item === "object" && "idxAsli" in item) {
             return { idxAsli: Number(item.idxAsli), teks: item.teks };
@@ -1196,7 +1270,6 @@
               return;
             }
 
-            // Cek status terbaru ke server (termasuk apakah pembahasan sudah dibuka guru atau di-reset)
             const chk = await fetch(`${GOOGLE_SCRIPT_URL}?action=get_result&kode=${encodeURIComponent(kodeInput)}&nama=${encodeURIComponent(parsedRes.nama)}&absen=${encodeURIComponent(parsedRes.absen)}&kelas=${encodeURIComponent(parsedRes.kelas)}`);
             const chkData = await chk.json();
 
@@ -1258,7 +1331,7 @@
             ? `Waktu pengerjaan: <strong>${activeQuiz.config.durasiMenit} menit</strong> (hitung mundur otomatis).`
             : `Waktu pengerjaan: <strong>Fleksibel</strong> (tanpa batas hitung mundur).`;
           const cheatInfo = activeQuiz.config.antiCheat
-            ? `Mode Ujian Aktif: Dilarang menekan tombol <strong>Kembali</strong> atau berpindah aplikasi (batas maksimal <strong>3 kali</strong> keluar layar).`
+            ? `Mode Ujian Layar Penuh: Dilarang keluar dari layar penuh atau berpindah aplikasi (batas maksimal <strong>3 kali</strong> keluar layar).`
             : `Mode Latihan: Silakan kerjakan soal dengan teliti dan jujur.`;
 
           document.getElementById("bio-rules-box").innerHTML = `<p>• ${durasiInfo}</p><p>• ${cheatInfo}</p>`;
@@ -1292,7 +1365,7 @@
     }
 
     // ==================== ARENA KUIS & ANTI-KECURANGAN ====================
-    function mulaiKuisSekarang() {
+    async function mulaiKuisSekarang() {
       const nama = document.getElementById("bio-nama").value.trim();
       const absen = document.getElementById("bio-absen").value.trim();
       const kelas = document.getElementById("bio-kelas").value.trim();
@@ -1302,7 +1375,53 @@
         return;
       }
 
+      const btn = document.getElementById("btn-mulai-sekarang");
+      const oriText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Memverifikasi Peserta di Server...";
+
+      // Aktifkan layar penuh langsung saat tombol diklik
+      if (activeQuiz.config.antiCheat) {
+        aktifkanLayarPenuh();
+      }
+
       const nowMs = Date.now();
+      const startTimeFormatted = new Date(nowMs).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "start_quiz",
+            materi: activeQuiz.materi,
+            startTimeFormatted,
+            nama,
+            absen,
+            kelas
+          })
+        });
+        const data = await res.json();
+
+        // Tolak akses jika peserta sudah tercatat SELESAI di server
+        if (data.status === "already_finished") {
+          keluarLayarPenuh();
+          showCustomModal({
+            title: "Akses Ditolak (Sudah Mengerjakan)",
+            message: data.message || "Kamu sudah menyelesaikan kuis ini. Pengerjaan ulang tidak diizinkan kecuali di-reset oleh Bapak/Ibu Guru.",
+            type: "warning",
+            confirmText: "Mengerti"
+          });
+          return;
+        }
+      } catch (e) {
+        keluarLayarPenuh();
+        showToast("Gagal memeriksa data peserta. Pastikan koneksi internet aktif.", "warning");
+        return;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = oriText;
+      }
+
       activeQuiz.nama = nama;
       activeQuiz.absen = absen;
       activeQuiz.kelas = kelas;
@@ -1316,20 +1435,6 @@
 
       simpanProgresSementara();
       siapkanArenaKuisUI();
-
-      const startTimeFormatted = new Date(nowMs).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-      fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          action: "start_quiz",
-          materi: activeQuiz.materi,
-          startTimeFormatted,
-          nama: activeQuiz.nama,
-          absen: activeQuiz.absen,
-          kelas: activeQuiz.kelas
-        })
-      }).catch(() => {});
-
       showToast("Kuis dimulai! Selamat mengerjakan.", "success");
     }
 
@@ -1341,6 +1446,7 @@
       if (activeQuiz.config.antiCheat) {
         vBadge.classList.remove("hidden");
         document.getElementById("violation-count-display").textContent = activeQuiz.violations;
+        aktifkanLayarPenuh();
       } else {
         vBadge.classList.add("hidden");
       }
@@ -1363,10 +1469,10 @@
       }
     });
 
-    function catatPelanggaranLayar() {
+    function catatPelanggaranLayar(alasanKhusus = null) {
       if (!activeQuiz.isRunning || !activeQuiz.config.antiCheat) return;
       const now = Date.now();
-      if (now - activeQuiz.lastViolationTime < 1200) return;
+      if (now - activeQuiz.lastViolationTime < 1500) return;
       activeQuiz.lastViolationTime = now;
 
       activeQuiz.violations += 1;
@@ -1374,6 +1480,7 @@
       simpanProgresSementara();
 
       if (activeQuiz.violations >= 3) {
+        bukaTiraiHitam();
         showCustomModal({
           title: "Batas Toleransi Habis (3/3)",
           message: "Kamu telah meninggalkan layar ujian sebanyak 3 kali. Sistem otomatis mengunci dan mengumpulkan jawabanmu sekarang.",
@@ -1383,21 +1490,34 @@
         });
         selesaikanDanKirimKuis();
       } else {
+        const pesanDetail = alasanKhusus
+          ? `${alasanKhusus} Jika mencapai 3 kali keluar layar, ujian akan otomatis dikumpulkan!`
+          : "Terdeteksi kamu menekan tombol Home, Recent Apps, atau berpindah tab. Jika mencapai 3 kali, ujian akan otomatis dikumpulkan!";
         showCustomModal({
           title: `Peringatan Keluar Layar (${activeQuiz.violations}/3)`,
-          message: "Terdeteksi kamu menekan tombol Home, Recent Apps, atau berpindah tab. Jika mencapai 3 kali, ujian akan otomatis dikumpulkan!",
+          message: pesanDetail,
           type: "warning",
-          confirmText: "Lanjutkan Ujian"
+          confirmText: "Lanjutkan Ujian",
+          onConfirm: () => {
+            bukaTiraiHitam();
+            aktifkanLayarPenuh();
+          }
         });
       }
     }
 
     document.addEventListener("visibilitychange", () => {
-      if (document.hidden && activeQuiz.isRunning) catatPelanggaranLayar();
+      if (document.hidden && activeQuiz.isRunning) {
+        tampilkanTiraiHitam();
+        catatPelanggaranLayar();
+      }
     });
 
     window.addEventListener("blur", () => {
-      if (activeQuiz.isRunning) catatPelanggaranLayar();
+      if (activeQuiz.isRunning) {
+        tampilkanTiraiHitam();
+        catatPelanggaranLayar();
+      }
     });
 
     function updateTimerDisplay() {
@@ -1486,7 +1606,6 @@
       };
       document.getElementById("q-type-badge").textContent = typeLabels[q.tipe] || "Soal";
 
-      // Reset semua slot gambar
       const slotAtas = document.getElementById("q-image-slot-atas");
       const slotTengah = document.getElementById("q-image-slot-tengah");
       const slotBawah = document.getElementById("q-image-slot-bawah");
@@ -1664,11 +1783,13 @@
       });
     }
 
-    // ==================== PENGIRIMAN JAWABAN KE SERVER & PENILAIAN TERPUSAT ====================
+    // ==================== PENGIRIMAN JAWABAN KE SERVER ====================
     async function selesaikanDanKirimKuis() {
       if (!activeQuiz.isRunning) return;
       activeQuiz.isRunning = false;
       clearInterval(activeQuiz.timerInterval);
+      bukaTiraiHitam();
+      keluarLayarPenuh();
 
       const endTime = new Date();
       const diffSec = Math.max(1, Math.floor((endTime.getTime() - activeQuiz.startTimeMs) / 1000));
@@ -2322,7 +2443,7 @@ ${JSON_SCHEMA_GUIDE}`;
       }
     }
 
-    // ==================== EDITOR BUTIR SOAL (EDIT & TAMBAH MANUAL) ====================
+    // ==================== EDITOR BUTIR SOAL ====================
     function sisipkanKerangkaTabel() {
       const ta = document.getElementById("eq-pertanyaan");
       const template = `\n| Kolom 1 | Kolom 2 |\n|---|---|\n| Isi 1 | Isi 2 |\n| Isi 3 | Isi 4 |\n`;
