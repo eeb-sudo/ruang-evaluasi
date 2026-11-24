@@ -48,6 +48,47 @@
     </div>
   </div>
 
+  <!-- MODAL CEK HASIL & PEMBAHASAN LINTAS PERANGKAT -->
+  <div id="lookup-result-modal" class="fixed inset-0 z-[65] hidden items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+    <div class="bg-white border border-stone-200 rounded-3xl shadow-2xl max-w-md w-full p-6 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-stone-100">
+        <div>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md">Riwayat Ujian</span>
+          <h3 class="text-base font-extrabold text-slate-800 mt-1">Cek Nilai & Pembahasan</h3>
+        </div>
+        <button onclick="tutupModalId('lookup-result-modal')" class="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-slate-600 text-xs font-bold">
+          Tutup
+        </button>
+      </div>
+      <p class="text-xs text-slate-500 leading-relaxed">
+        Gunakan menu ini jika kamu mengecek hasil ujian dari perangkat lain atau setelah membersihkan riwayat browser.
+      </p>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Kode Kuis</label>
+          <input type="text" id="lookup-kode" placeholder="Contoh: EEB-XXX" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 uppercase font-bold focus:outline-none focus:ring-2 focus:ring-teal-600" />
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Nama Peserta</label>
+          <input type="text" id="lookup-nama" placeholder="Ketik nama lengkap atau panggilan..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Nomor Absen</label>
+            <input type="text" id="lookup-absen" placeholder="Contoh: 12" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Kelas</label>
+            <input type="text" id="lookup-kelas" placeholder="Contoh: 6A" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600" />
+          </div>
+        </div>
+      </div>
+      <button id="btn-cek-hasil-lintas" onclick="prosesCekHasilLintasPerangkat()" class="w-full py-3 px-4 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-sm transition">
+        Tampilkan Nilai & Pembahasan
+      </button>
+    </div>
+  </div>
+
   <!-- LIGHTBOX GAMBAR (GESTUR CUBIT 2 JARI AKTIF KHUSUS SAAT GAMBAR DIBUKA) -->
   <div id="image-zoom-modal" onclick="tutupModalId('image-zoom-modal')" class="fixed inset-0 z-[75] hidden flex-col bg-slate-900/90 backdrop-blur-xs">
     <div class="w-full py-3 px-4 flex items-center justify-between text-white text-xs bg-slate-950/80 border-b border-white/10">
@@ -275,7 +316,7 @@
         <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight mb-1">Ruang Evaluasi Siswa</h1>
         <p class="text-sm text-slate-500 mb-6">Masukkan kode kuis yang diberikan oleh Bapak/Ibu Guru untuk memulai.</p>
 
-        <div class="space-y-4 text-left">
+        <div class="space-y-3 text-left">
           <div>
             <label for="input-kode-kuis" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Kode Kuis</label>
             <input type="text" id="input-kode-kuis" autocomplete="off" placeholder="Contoh: EEB-XXX" class="w-full px-4 py-3.5 rounded-xl bg-stone-50 border border-slate-300 text-slate-800 font-bold text-center text-lg uppercase tracking-wider focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent transition" />
@@ -284,6 +325,12 @@
             <span>Masuk Kuis</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
           </button>
+
+          <div class="pt-3 border-t border-stone-100 text-center">
+            <button type="button" onclick="bukaModalCekHasil()" class="w-full py-2.5 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-slate-700 text-xs font-semibold transition">
+              Sudah Selesai? Cek Nilai & Pembahasan
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -1013,25 +1060,30 @@
       document.body.removeChild(ta);
     }
 
-    // ==================== ACAK SOAL & OPSI PILIHAN GANDA ====================
+    // ==================== ACAK SOAL & OPSI (DENGAN INDEKS ASLI DARI SERVER) ====================
     function acakSoalDanOpsi(soalList) {
       const blocks = [];
       const wacanaMap = new Map();
 
       soalList.forEach((rawSoal, idx) => {
         const soal = JSON.parse(JSON.stringify(rawSoal));
-        soal.origNum = idx + 1;
+        if (!soal.noAsli) soal.noAsli = idx + 1;
 
-        if (soal.tipe === "pg" && Array.isArray(soal.opsi)) {
-          const correctIdx = Number(soal.jawaban);
-          const paired = soal.opsi.map((text, i) => ({ text, isCorrect: i === correctIdx }));
-          for (let i = paired.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [paired[i], paired[j]] = [paired[j], paired[i]];
+        // Normalisasi opsi menjadi objek { idxAsli, teks }
+        const normalizedOpsi = (soal.opsi || []).map((item, oIdx) => {
+          if (item && typeof item === "object" && "idxAsli" in item) {
+            return { idxAsli: Number(item.idxAsli), teks: item.teks };
           }
-          soal.opsi = paired.map(p => p.text);
-          soal.jawaban = paired.findIndex(p => p.isCorrect);
+          return { idxAsli: oIdx, teks: String(item) };
+        });
+
+        if (soal.tipe === "pg") {
+          for (let i = normalizedOpsi.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [normalizedOpsi[i], normalizedOpsi[j]] = [normalizedOpsi[j], normalizedOpsi[i]];
+          }
         }
+        soal.opsi = normalizedOpsi;
 
         const w = (soal.wacana || "").trim();
         if (w !== "") {
@@ -1073,6 +1125,51 @@
       localStorage.setItem(`kuis_progress_${activeQuiz.kode}`, JSON.stringify(stateToSave));
     }
 
+    // ==================== CEK HASIL & PEMBAHASAN LINTAS PERANGKAT ====================
+    function bukaModalCekHasil() {
+      const kodeAwal = document.getElementById("input-kode-kuis").value.trim().toUpperCase();
+      document.getElementById("lookup-kode").value = kodeAwal;
+      const modal = document.getElementById("lookup-result-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    async function prosesCekHasilLintasPerangkat() {
+      const kode = document.getElementById("lookup-kode").value.trim().toUpperCase();
+      const nama = document.getElementById("lookup-nama").value.trim();
+      const absen = document.getElementById("lookup-absen").value.trim();
+      const kelas = document.getElementById("lookup-kelas").value.trim();
+
+      if (!kode || !nama || !absen || !kelas) {
+        showToast("Kode Kuis, Nama, Nomor Absen, dan Kelas wajib diisi.", "warning");
+        return;
+      }
+
+      const btn = document.getElementById("btn-cek-hasil-lintas");
+      btn.disabled = true;
+      btn.textContent = "Mencari Data Ujian...";
+
+      try {
+        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=get_result&kode=${encodeURIComponent(kode)}&nama=${encodeURIComponent(nama)}&absen=${encodeURIComponent(absen)}&kelas=${encodeURIComponent(kelas)}`);
+        const data = await res.json();
+
+        if (data.status === "success" && data.found && data.rekap) {
+          tutupModalId("lookup-result-modal");
+          localStorage.setItem(`kuis_selesai_${kode}`, JSON.stringify(data.rekap));
+          cachedRekapData = data.rekap;
+          renderHalamanRekap(data.rekap);
+          showToast("Data hasil ujian berhasil dimuat!", "success");
+        } else {
+          showToast(data.message || "Data nilai tidak ditemukan. Periksa kembali identitasmu.", "warning");
+        }
+      } catch (e) {
+        showToast("Gagal terhubung ke server.", "warning");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Tampilkan Nilai & Pembahasan";
+      }
+    }
+
     // ==================== PINTU MURID ====================
     async function handleMasukKuis() {
       const kodeInput = document.getElementById("input-kode-kuis").value.trim().toUpperCase();
@@ -1092,21 +1189,30 @@
         if (existingResult) {
           try {
             const parsedRes = JSON.parse(existingResult);
-            const chk = await fetch(`${GOOGLE_SCRIPT_URL}?action=check_student&materi=${encodeURIComponent(parsedRes.materi)}&nama=${encodeURIComponent(parsedRes.nama)}&absen=${encodeURIComponent(parsedRes.absen)}&kelas=${encodeURIComponent(parsedRes.kelas)}`);
-            const chkData = await chk.json();
-            if (chkData.status === "success" && chkData.exists === true) {
-              cachedRekapData = parsedRes;
-              renderHalamanRekap(cachedRekapData);
-              showToast("Menampilkan hasil pengerjaan tersimpan di perangkat ini.", "info");
-              return;
-            } else if (parsedRes.synced === false) {
+            if (parsedRes.synced === false) {
               cachedRekapData = parsedRes;
               renderHalamanRekap(cachedRekapData);
               showToast("Nilai belum terkirim ke server. Silakan klik Kirim Ulang.", "warning");
               return;
-            } else {
+            }
+
+            // Cek status terbaru ke server (termasuk apakah pembahasan sudah dibuka guru atau di-reset)
+            const chk = await fetch(`${GOOGLE_SCRIPT_URL}?action=get_result&kode=${encodeURIComponent(kodeInput)}&nama=${encodeURIComponent(parsedRes.nama)}&absen=${encodeURIComponent(parsedRes.absen)}&kelas=${encodeURIComponent(parsedRes.kelas)}`);
+            const chkData = await chk.json();
+
+            if (chkData.status === "success" && chkData.found === true && chkData.rekap) {
+              localStorage.setItem(savedKey, JSON.stringify(chkData.rekap));
+              cachedRekapData = chkData.rekap;
+              renderHalamanRekap(cachedRekapData);
+              showToast("Menampilkan hasil & status pembahasan terbaru.", "info");
+              return;
+            } else if (chkData.status === "success" && chkData.found === false) {
               localStorage.removeItem(savedKey);
               showToast("Akses ujian telah di-reset oleh guru. Silakan kerjakan ulang.", "info");
+            } else {
+              cachedRekapData = parsedRes;
+              renderHalamanRekap(cachedRekapData);
+              return;
             }
           } catch (e) {
             cachedRekapData = JSON.parse(existingResult);
@@ -1415,8 +1521,9 @@
 
       if (q.tipe === "pg") {
         const huruf = ["A", "B", "C", "D", "E", "F"];
-        q.opsi.forEach((teksOpsi, optIdx) => {
-          const selected = activeQuiz.answers[index] === optIdx;
+        q.opsi.forEach((optObj, visualIdx) => {
+          const origOptIdx = optObj.idxAsli;
+          const selected = activeQuiz.answers[index] === origOptIdx;
           const card = document.createElement("div");
           card.className = `p-3.5 sm:p-4 rounded-2xl border cursor-pointer flex items-start gap-3 transition-colors ${
             selected ? "bg-teal-50/80 border-teal-600 text-slate-900" : "bg-white border-stone-200 hover:bg-stone-50 text-slate-700"
@@ -1424,21 +1531,22 @@
           card.innerHTML = `
             <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
               selected ? "bg-teal-700 text-white" : "bg-stone-100 text-slate-600"
-            }">${huruf[optIdx] || optIdx + 1}</span>
-            <span class="quiz-option-text text-sm leading-relaxed pt-0.5">${escapeHtml(teksOpsi)}</span>
+            }">${huruf[visualIdx] || visualIdx + 1}</span>
+            <span class="quiz-option-text text-sm leading-relaxed pt-0.5">${escapeHtml(optObj.teks)}</span>
           `;
           card.onclick = () => {
-            activeQuiz.answers[index] = optIdx;
+            activeQuiz.answers[index] = origOptIdx;
             simpanProgresSementara();
-            updateOpsiVisualPG(container, optIdx);
+            updateOpsiVisualPG(container, visualIdx);
             refreshDrawerStatus();
           };
           container.appendChild(card);
         });
       } else if (q.tipe === "mcma") {
         if (!Array.isArray(activeQuiz.answers[index])) activeQuiz.answers[index] = [];
-        q.opsi.forEach((teksOpsi, optIdx) => {
-          const checked = activeQuiz.answers[index].includes(optIdx);
+        q.opsi.forEach((optObj) => {
+          const origOptIdx = optObj.idxAsli;
+          const checked = activeQuiz.answers[index].includes(origOptIdx);
           const card = document.createElement("div");
           card.className = `p-3.5 sm:p-4 rounded-2xl border cursor-pointer flex items-start gap-3 transition-colors ${
             checked ? "bg-teal-50/80 border-teal-600 text-slate-900" : "bg-white border-stone-200 hover:bg-stone-50 text-slate-700"
@@ -1449,13 +1557,13 @@
             }">
               ${checked ? '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>' : ""}
             </div>
-            <span class="quiz-option-text text-sm leading-relaxed">${escapeHtml(teksOpsi)}</span>
+            <span class="quiz-option-text text-sm leading-relaxed">${escapeHtml(optObj.teks)}</span>
           `;
           card.onclick = () => {
             const arr = activeQuiz.answers[index];
-            const pos = arr.indexOf(optIdx);
+            const pos = arr.indexOf(origOptIdx);
             if (pos > -1) arr.splice(pos, 1);
-            else arr.push(optIdx);
+            else arr.push(origOptIdx);
             simpanProgresSementara();
             renderSoal(index);
             refreshDrawerStatus();
@@ -1478,13 +1586,13 @@
           </div>
         `;
 
-        q.opsi.slice(0, 3).forEach((pernyataan, stmtIdx) => {
+        q.opsi.slice(0, 3).forEach((optObj, stmtIdx) => {
           const row = document.createElement("div");
           row.className = "grid grid-cols-12 items-center px-4 py-3 border-t border-stone-200 text-sm bg-white gap-2";
           const currentVal = activeQuiz.answers[index][stmtIdx];
 
           row.innerHTML = `
-            <div class="quiz-option-text col-span-7 sm:col-span-8 text-slate-700 leading-snug pr-2">${escapeHtml(pernyataan)}</div>
+            <div class="quiz-option-text col-span-7 sm:col-span-8 text-slate-700 leading-snug pr-2">${escapeHtml(optObj.teks)}</div>
             <div class="col-span-5 sm:col-span-4 grid grid-cols-2 gap-2">
               <button type="button" data-val="0" class="py-1.5 rounded-lg border text-xs font-bold transition ${
                 currentVal === 0 ? "bg-teal-700 text-white border-teal-700" : "bg-stone-50 text-slate-600 border-stone-200 hover:bg-stone-100"
@@ -1522,10 +1630,10 @@
       renderAllMath(document.getElementById("quiz-card-body"));
     }
 
-    function updateOpsiVisualPG(container, selectedIdx) {
+    function updateOpsiVisualPG(container, selectedVisualIdx) {
       const cards = container.children;
       for (let i = 0; i < cards.length; i++) {
-        const isSel = i === selectedIdx;
+        const isSel = i === selectedVisualIdx;
         cards[i].className = `p-3.5 sm:p-4 rounded-2xl border cursor-pointer flex items-start gap-3 transition-colors ${
           isSel ? "bg-teal-50/80 border-teal-600 text-slate-900" : "bg-white border-stone-200 hover:bg-stone-50 text-slate-700"
         }`;
@@ -1556,7 +1664,7 @@
       });
     }
 
-    // ==================== PENILAIAN, REKAP & KIRIM ULANG ANTI-DUPLIKAT ====================
+    // ==================== PENGIRIMAN JAWABAN KE SERVER & PENILAIAN TERPUSAT ====================
     async function selesaikanDanKirimKuis() {
       if (!activeQuiz.isRunning) return;
       activeQuiz.isRunning = false;
@@ -1565,76 +1673,35 @@
       const endTime = new Date();
       const diffSec = Math.max(1, Math.floor((endTime.getTime() - activeQuiz.startTimeMs) / 1000));
       const durationStr = `${Math.floor(diffSec / 60)} menit ${diffSec % 60} detik`;
-
-      const poinPG = Number(activeQuiz.config.poinPG) || 1;
-      const poinMCMA = Number(activeQuiz.config.poinMCMA) || 3;
-      const poinKat = Number(activeQuiz.config.poinKat) || 3;
-
-      let totalPoints = 0, maxPoints = 0, fullCorrectCount = 0, partialCount = 0, wrongCount = 0;
-      const wrongNums = [];
-
-      activeQuiz.soal.forEach((q, idx) => {
-        const ans = activeQuiz.answers[idx];
-        const origNo = q.origNum || (idx + 1);
-
-        if (q.tipe === "pg") {
-          maxPoints += poinPG;
-          if (ans === Number(q.jawaban)) { totalPoints += poinPG; fullCorrectCount++; }
-          else { wrongCount++; wrongNums.push(origNo); }
-        } else if (q.tipe === "mcma") {
-          maxPoints += poinMCMA;
-          const correctArr = Array.isArray(q.jawaban) ? q.jawaban.map(Number).sort() : [];
-          const userArr = Array.isArray(ans) ? [...ans].map(Number).sort() : [];
-          const isExact = userArr.length === correctArr.length && userArr.every((v, i) => v === correctArr[i]);
-          const hasAnyCorrect = userArr.some(v => correctArr.includes(v));
-          if (isExact && correctArr.length > 0) { totalPoints += poinMCMA; fullCorrectCount++; }
-          else if (hasAnyCorrect) { totalPoints += 1; partialCount++; wrongNums.push(origNo); }
-          else { wrongCount++; wrongNums.push(origNo); }
-        } else if (q.tipe === "kategori") {
-          maxPoints += poinKat;
-          const correctArr = Array.isArray(q.jawaban) ? q.jawaban.map(Number) : [];
-          const userArr = Array.isArray(ans) ? ans : [null, null, null];
-          let match = 0;
-          for (let i = 0; i < 3; i++) if (userArr[i] === correctArr[i]) match++;
-          if (match === 3) { totalPoints += poinKat; fullCorrectCount++; }
-          else if (match >= 1) { totalPoints += 1; partialCount++; wrongNums.push(origNo); }
-          else { wrongCount++; wrongNums.push(origNo); }
-        }
-      });
-
-      const finalGrade = maxPoints > 0 ? Math.round((totalPoints / maxPoints) * 100) : 0;
       const formatWaktu = (d) => d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
       const endTimeFormatted = `${endTime.toLocaleDateString("id-ID")} ${formatWaktu(endTime)}`;
 
-      const rekapObj = {
+      const mappedAnswers = activeQuiz.soal.map((q, idx) => ({
+        noAsli: q.noAsli || (idx + 1),
+        jawaban: activeQuiz.answers[idx]
+      }));
+
+      const submitPayload = {
+        action: "submit_quiz",
         kode: activeQuiz.kode,
         materi: activeQuiz.materi,
         nama: activeQuiz.nama,
         absen: activeQuiz.absen,
         kelas: activeQuiz.kelas,
-        finalGrade,
-        fullCorrectCount,
-        partialCount,
-        wrongCount,
         startTimeFormatted: formatWaktu(new Date(activeQuiz.startTimeMs)),
-        endTimeFormatted,
+        endTimeFormatted: endTimeFormatted,
         duration: durationStr,
         violations: activeQuiz.violations,
-        wrongNums: wrongNums,
-        showPembahasan: activeQuiz.config.showPembahasan,
-        soal: activeQuiz.soal,
-        synced: false
+        answers: mappedAnswers
       };
 
       localStorage.removeItem(`kuis_progress_${activeQuiz.kode}`);
-      localStorage.setItem(`kuis_selesai_${activeQuiz.kode}`, JSON.stringify(rekapObj));
-      cachedRekapData = rekapObj;
-      renderHalamanRekap(rekapObj);
+      showToast("Mengirim jawaban & menghitung nilai di server...", "info");
 
-      await kirimDataNilaiKeServer(rekapObj, false);
+      await kirimDataNilaiKeServer(submitPayload, false);
     }
 
-    async function kirimDataNilaiKeServer(rekapObj, isManualRetry = false) {
+    async function kirimDataNilaiKeServer(submitPayload, isManualRetry = false) {
       const btnResend = document.getElementById("btn-resend-score");
       if (isManualRetry) {
         btnResend.disabled = true;
@@ -1644,35 +1711,47 @@
       try {
         const res = await fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
-          body: JSON.stringify({
-            action: "finish_quiz",
-            materi: rekapObj.materi,
-            endTimeFormatted: rekapObj.endTimeFormatted,
-            nama: rekapObj.nama,
-            absen: rekapObj.absen,
-            kelas: rekapObj.kelas,
-            finalGrade: rekapObj.finalGrade,
-            fullCorrectCount: rekapObj.fullCorrectCount,
-            partialCount: rekapObj.partialCount,
-            wrongCount: rekapObj.wrongCount,
-            duration: rekapObj.duration,
-            violations: rekapObj.violations,
-            wrongNums: rekapObj.wrongNums || []
-          })
+          body: JSON.stringify(submitPayload)
         });
         const data = await res.json();
-        if (data.status === "success") {
-          rekapObj.synced = true;
-          cachedRekapData = rekapObj;
-          localStorage.setItem(`kuis_selesai_${rekapObj.kode}`, JSON.stringify(rekapObj));
+        if (data.status === "success" && data.rekap) {
+          const finalRekap = {
+            ...data.rekap,
+            startTimeFormatted: submitPayload.startTimeFormatted,
+            synced: true
+          };
+          cachedRekapData = finalRekap;
+          localStorage.setItem(`kuis_selesai_${submitPayload.kode}`, JSON.stringify(finalRekap));
           btnResend.classList.add("hidden");
-          showToast("Nilai berhasil tersimpan di rekap guru!", "success");
+          renderHalamanRekap(finalRekap);
+          showToast("Nilai berhasil dihitung & tersimpan di rekap guru!", "success");
         } else {
-          throw new Error("Server menolak penyimpanan.");
+          throw new Error(data.message || "Server menolak penyimpanan.");
         }
       } catch (e) {
-        rekapObj.synced = false;
-        localStorage.setItem(`kuis_selesai_${rekapObj.kode}`, JSON.stringify(rekapObj));
+        const offlineRekap = {
+          kode: submitPayload.kode,
+          materi: submitPayload.materi,
+          nama: submitPayload.nama,
+          absen: submitPayload.absen,
+          kelas: submitPayload.kelas,
+          finalGrade: "Pending",
+          fullCorrectCount: "-",
+          partialCount: "-",
+          wrongCount: "-",
+          startTimeFormatted: submitPayload.startTimeFormatted,
+          endTimeFormatted: submitPayload.endTimeFormatted,
+          duration: submitPayload.duration,
+          violations: submitPayload.violations,
+          showPembahasan: false,
+          soal: [],
+          synced: false,
+          pendingPayload: submitPayload
+        };
+        cachedRekapData = offlineRekap;
+        localStorage.setItem(`kuis_selesai_${submitPayload.kode}`, JSON.stringify(offlineRekap));
+        renderHalamanRekap(offlineRekap);
+
         btnResend.classList.remove("hidden");
         btnResend.disabled = false;
         btnResend.innerHTML = `<span>Kirim Ulang Nilai ke Guru</span>`;
@@ -1681,8 +1760,8 @@
     }
 
     function kirimUlangNilaiKeServer() {
-      if (!cachedRekapData || cachedRekapData.synced) return;
-      kirimDataNilaiKeServer(cachedRekapData, true);
+      if (!cachedRekapData || cachedRekapData.synced || !cachedRekapData.pendingPayload) return;
+      kirimDataNilaiKeServer(cachedRekapData.pendingPayload, true);
     }
 
     function renderHalamanRekap(data) {
@@ -1692,20 +1771,20 @@
       document.getElementById("rekap-nama").textContent = data.nama;
       document.getElementById("rekap-absen").textContent = data.absen;
       document.getElementById("rekap-kelas").textContent = data.kelas;
-      document.getElementById("rekap-benar").textContent = `${data.fullCorrectCount} soal`;
-      document.getElementById("rekap-sebagian").textContent = `${data.partialCount} soal`;
-      document.getElementById("rekap-salah").textContent = `${data.wrongCount} soal`;
+      document.getElementById("rekap-benar").textContent = data.synced === false ? "-" : `${data.fullCorrectCount} soal`;
+      document.getElementById("rekap-sebagian").textContent = data.synced === false ? "-" : `${data.partialCount} soal`;
+      document.getElementById("rekap-salah").textContent = data.synced === false ? "-" : `${data.wrongCount} soal`;
       document.getElementById("rekap-pelanggaran").textContent = `${data.violations}x`;
-      document.getElementById("rekap-mulai").textContent = data.startTimeFormatted;
-      document.getElementById("rekap-selesai").textContent = data.endTimeFormatted;
-      document.getElementById("rekap-durasi").textContent = data.duration;
+      document.getElementById("rekap-mulai").textContent = data.startTimeFormatted || "-";
+      document.getElementById("rekap-selesai").textContent = data.endTimeFormatted || "-";
+      document.getElementById("rekap-durasi").textContent = data.duration || "-";
 
       const btnResend = document.getElementById("btn-resend-score");
       if (data.synced === false) btnResend.classList.remove("hidden");
       else btnResend.classList.add("hidden");
 
       const pembSection = document.getElementById("pembahasan-section");
-      if (data.showPembahasan === false) {
+      if (data.showPembahasan === false || !Array.isArray(data.soal) || data.soal.length === 0) {
         pembSection.classList.add("hidden");
       } else {
         pembSection.classList.remove("hidden");
@@ -1713,7 +1792,7 @@
         list.innerHTML = "";
         const huruf = ["A", "B", "C", "D", "E", "F"];
 
-        (data.soal || []).forEach((q, idx) => {
+        data.soal.forEach((q, idx) => {
           let kunciText = "";
           if (q.tipe === "pg") {
             const kIdx = Number(q.jawaban);
