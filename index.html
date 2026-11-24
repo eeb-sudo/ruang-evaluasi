@@ -24,10 +24,10 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between bg-stone-50 text-slate-800">
 
-  <!-- TOAST NOTIFICATION CONTAINER (LAPISAN TERTINGGI z-[60]) -->
+  <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toast-container" class="fixed top-4 right-4 z-[60] flex flex-col gap-2 max-w-xs w-full pointer-events-none"></div>
 
-  <!-- CUSTOM MODAL OVERLAY (LAPISAN TERTINGGI z-[60]) -->
+  <!-- CUSTOM MODAL OVERLAY -->
   <div id="custom-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
     <div class="bg-white border border-stone-200 rounded-2xl shadow-xl max-w-md w-full p-6 transform transition-all">
       <div id="modal-icon" class="w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-teal-50 text-teal-700">
@@ -36,7 +36,7 @@
       <h3 id="modal-title" class="text-lg font-bold text-slate-800 mb-2">Informasi</h3>
       <p id="modal-message" class="text-sm text-slate-600 leading-relaxed mb-6"></p>
       <div id="modal-input-wrapper" class="hidden mb-5">
-        <input type="password" id="modal-input" inputmode="numeric" placeholder="••••••" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 text-center tracking-widest font-bold text-lg" />
+        <input type="password" id="modal-input" placeholder="Masukkan sandi..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 text-center tracking-wider font-bold text-base" />
       </div>
       <div id="modal-actions" class="flex justify-end gap-2.5"></div>
     </div>
@@ -137,7 +137,7 @@
       <div class="p-4 sm:p-6 overflow-y-auto space-y-5">
         <div id="part-summary" class="flex flex-wrap gap-2.5 text-xs"></div>
 
-        <!-- Analisis Butir Soal (Persentase Salah Seluruh Nomor) -->
+        <!-- Analisis Butir Soal -->
         <div id="item-analysis-box" class="hidden p-4 rounded-2xl bg-stone-50 border border-stone-200">
           <div class="flex items-center justify-between mb-2.5">
             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">Analisis Butir Soal (% Salah per Nomor Asli)</h4>
@@ -345,7 +345,6 @@
         </div>
       </div>
 
-      <!-- Tombol Aksi Akhir (Kirim Ulang hanya muncul jika gagal terkirim) -->
       <div class="flex flex-col sm:flex-row gap-3">
         <button id="btn-resend-score" onclick="kirimUlangNilaiKeServer()" class="hidden py-3.5 px-5 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -547,12 +546,15 @@
 
           <div class="p-4 rounded-2xl bg-stone-50 border border-stone-200 flex flex-col justify-between gap-3">
             <div>
-              <h4 class="text-xs font-bold text-slate-700 uppercase">Keamanan PIN Guru</h4>
-              <p class="text-xs text-slate-500 mt-1">Ubah PIN masuk Dashboard Guru pada browser ini.</p>
+              <h4 class="text-xs font-bold text-slate-700 uppercase">Keamanan Sandi Guru (Terpusat)</h4>
+              <p class="text-xs text-slate-500 mt-1">Berlaku otomatis di semua HP/laptop (huruf atau angka).</p>
             </div>
-            <div class="flex gap-2">
-              <input type="password" id="input-pin-baru" inputmode="numeric" placeholder="PIN Baru" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white" />
-              <button onclick="simpanPinBaru()" class="px-3.5 py-2 rounded-xl bg-slate-800 text-white text-xs font-semibold whitespace-nowrap">Simpan</button>
+            <div class="space-y-2">
+              <input type="password" id="input-pin-lama" placeholder="Sandi Lama" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white" />
+              <div class="flex gap-2">
+                <input type="password" id="input-pin-baru" placeholder="Sandi Baru (min. 4 karakter)" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white" />
+                <button id="btn-simpan-pin" onclick="simpanPinBaru()" class="px-3.5 py-2 rounded-xl bg-slate-800 text-white text-xs font-semibold whitespace-nowrap">Simpan</button>
+              </div>
             </div>
           </div>
         </div>
@@ -798,7 +800,6 @@
               showToast("Menampilkan hasil pengerjaan tersimpan di perangkat ini.", "info");
               return;
             } else if (parsedRes.synced === false) {
-              // Belum terkirim ke server karena dulu offline -> tampilkan rekap + tombol Kirim Ulang
               cachedRekapData = parsedRes;
               renderHalamanRekap(cachedRekapData);
               showToast("Nilai belum terkirim ke server. Silakan klik Kirim Ulang.", "warning");
@@ -1472,28 +1473,78 @@
       showToast("Seluruh pembahasan soal berhasil disalin!", "success");
     }
 
-    // ==================== DASHBOARD GURU ====================
-    function getGuruPin() {
-      return localStorage.getItem("guru_dashboard_pin") || "123456";
-    }
-
+    // ==================== DASHBOARD GURU & SANDI TERPUSAT ====================
     function bukaLoginGuru() {
       showCustomModal({
         title: "Akses Dashboard Guru",
-        message: "Masukkan PIN keamanan untuk membuka panel pengelolaan soal.",
+        message: "Masukkan sandi keamanan untuk membuka panel pengelolaan soal.",
         showInput: true,
         cancelText: "Batal",
         confirmText: "Masuk",
-        onConfirm: (pinInput) => {
-          if (pinInput === getGuruPin()) {
-            hitungPreviewKomposisi();
-            switchView("view-guru");
-            muatRiwayatKuis();
-          } else {
-            showToast("PIN yang dimasukkan salah.", "warning");
+        onConfirm: async (pinInput) => {
+          const cleanPin = (pinInput || "").trim();
+          if (!cleanPin) {
+            showToast("Sandi tidak boleh kosong.", "warning");
+            return;
+          }
+          showToast("Memeriksa sandi...", "info");
+          try {
+            const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=verify_pin&pin=${encodeURIComponent(cleanPin)}`);
+            const data = await res.json();
+            if (data.status === "success") {
+              hitungPreviewKomposisi();
+              switchView("view-guru");
+              muatRiwayatKuis();
+            } else {
+              showToast(data.message || "Sandi yang dimasukkan salah.", "warning");
+            }
+          } catch (e) {
+            showToast("Gagal terhubung ke server untuk verifikasi sandi.", "warning");
           }
         }
       });
+    }
+
+    async function simpanPinBaru() {
+      const oldPin = document.getElementById("input-pin-lama").value.trim();
+      const newPin = document.getElementById("input-pin-baru").value.trim();
+
+      if (!oldPin) {
+        showToast("Masukkan Sandi Lama terlebih dahulu.", "warning");
+        return;
+      }
+      if (newPin.length < 4) {
+        showToast("Sandi Baru minimal terdiri dari 4 karakter.", "warning");
+        return;
+      }
+
+      const btn = document.getElementById("btn-simpan-pin");
+      btn.disabled = true;
+      btn.textContent = "Menyimpan...";
+
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "update_pin",
+            oldPin: oldPin,
+            newPin: newPin
+          })
+        });
+        const data = await res.json();
+        if (data.status === "success") {
+          document.getElementById("input-pin-lama").value = "";
+          document.getElementById("input-pin-baru").value = "";
+          showToast("Sandi Guru berhasil diperbarui di semua perangkat!", "success");
+        } else {
+          showToast(data.message || "Gagal memperbarui sandi.", "warning");
+        }
+      } catch (e) {
+        showToast("Gagal terhubung ke server.", "warning");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Simpan";
+      }
     }
 
     function hitungPreviewKomposisi() {
@@ -2068,17 +2119,6 @@ ${JSON_SCHEMA_GUIDE}`;
       } catch (e) {
         statusEl.innerHTML = `<span class="text-amber-700 font-bold">Gagal terhubung.</span> Periksa URL atau izin deploy Apps Script.`;
       }
-    }
-
-    function simpanPinBaru() {
-      const pinBaru = document.getElementById("input-pin-baru").value.trim();
-      if (pinBaru.length < 4) {
-        showToast("PIN minimal terdiri dari 4 angka.", "warning");
-        return;
-      }
-      localStorage.setItem("guru_dashboard_pin", pinBaru);
-      document.getElementById("input-pin-baru").value = "";
-      showToast("PIN Guru berhasil diperbarui!", "success");
     }
 
     function resetKunciPerangkat() {
