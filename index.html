@@ -1514,7 +1514,7 @@
               renderHalamanRekap(cachedRekapData);
               showToast("Menampilkan hasil & status pembahasan terbaru.", "info");
               return;
-            } else if (chkData.status === "success" && chkData.found === false) {
+            } else if ((chkData.status === "success" && chkData.found === false) || (chkData.status === "error" && /belum ada data|tidak ditemukan/i.test(chkData.message || ""))) {
               localStorage.removeItem(savedKey);
               showToast("Akses ujian telah di-reset oleh guru. Silakan kerjakan ulang.", "info");
             } else {
