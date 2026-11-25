@@ -230,6 +230,20 @@
               <span class="text-[11px] text-slate-500">Centang setelah semua sesi kelas selesai agar murid bisa belajar.</span>
             </div>
           </label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:bg-stone-50">
+            <input type="checkbox" id="edit-cfg-acak-soal" class="w-4 h-4 accent-teal-700 rounded" />
+            <div>
+              <span class="font-bold text-slate-800 block">Acak Urutan Nomor Soal</span>
+              <span class="text-[11px] text-slate-500">Centang untuk mengacak urutan soal tiap siswa (soal satu wacana tetap menyatu).</span>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:bg-stone-50">
+            <input type="checkbox" id="edit-cfg-acak-opsi" class="w-4 h-4 accent-teal-700 rounded" />
+            <div>
+              <span class="font-bold text-slate-800 block">Acak Urutan Pilihan Jawaban (PG)</span>
+              <span class="text-[11px] text-slate-500">Centang untuk mengacak posisi opsi A, B, C, D pada soal pilihan ganda.</span>
+            </div>
+          </label>
         </div>
       </div>
 
@@ -1353,7 +1367,9 @@
     }
 
     // ==================== ACAK SOAL & OPSI ====================
-    function acakSoalDanOpsi(soalList) {
+    function acakSoalDanOpsi(soalList, cfg = {}) {
+      const shouldAcakSoal = cfg.acakSoal !== false;
+      const shouldAcakOpsi = cfg.acakOpsi !== false;
       const blocks = [];
       const wacanaMap = new Map();
 
@@ -1368,7 +1384,7 @@
           return { idxAsli: oIdx, teks: String(item) };
         });
 
-        if (soal.tipe === "pg") {
+        if (shouldAcakOpsi && soal.tipe === "pg") {
           for (let i = normalizedOpsi.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [normalizedOpsi[i], normalizedOpsi[j]] = [normalizedOpsi[j], normalizedOpsi[i]];
@@ -1389,9 +1405,11 @@
         }
       });
 
+      if (shouldAcakSoal) {
       for (let i = blocks.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [blocks[i], blocks[j]] = [blocks[j], blocks[i]];
+      }
       }
       return blocks.flat();
     }
@@ -1540,9 +1558,11 @@
             poinKat: Number(data.config?.poinKat ?? 3),
             poinKat2: Number(data.config?.poinKat2 ?? 2),
             poinKat1: Number(data.config?.poinKat1 ?? 1),
-            showPembahasan: data.config?.showPembahasan !== false
+            showPembahasan: data.config?.showPembahasan !== false,
+            acakSoal: data.config?.acakSoal !== false,
+            acakOpsi: data.config?.acakOpsi !== false
           };
-          activeQuiz.soal = acakSoalDanOpsi(data.soal);
+          activeQuiz.soal = acakSoalDanOpsi(data.soal, activeQuiz.config);
           activeQuiz.answers = new Array(activeQuiz.soal.length).fill(null);
 
           document.getElementById("bio-badge-kode").textContent = `KODE: ${activeQuiz.kode}`;
@@ -3058,6 +3078,8 @@ ${JSON_SCHEMA_GUIDE}`;
       document.getElementById("edit-cfg-poin-kat1").value = cfg.poinKat1 ?? 1;
       document.getElementById("edit-cfg-anti-cheat").checked = cfg.antiCheat !== false;
       document.getElementById("edit-cfg-show-pembahasan").checked = cfg.showPembahasan !== false;
+      document.getElementById("edit-cfg-acak-soal").checked = cfg.acakSoal !== false;
+      document.getElementById("edit-cfg-acak-opsi").checked = cfg.acakOpsi !== false;
 
       perbaruiInfoPoinMaksimalEdit();
 
@@ -3082,7 +3104,9 @@ ${JSON_SCHEMA_GUIDE}`;
         poinKat2: parseFloat(document.getElementById("edit-cfg-poin-kat2").value) || 0,
         poinKat1: parseFloat(document.getElementById("edit-cfg-poin-kat1").value) || 0,
         antiCheat: document.getElementById("edit-cfg-anti-cheat").checked,
-        showPembahasan: document.getElementById("edit-cfg-show-pembahasan").checked
+        showPembahasan: document.getElementById("edit-cfg-show-pembahasan").checked,
+        acakSoal: document.getElementById("edit-cfg-acak-soal").checked,
+        acakOpsi: document.getElementById("edit-cfg-acak-opsi").checked
       };
 
       try {
