@@ -363,9 +363,10 @@
           <button type="button" id="btn-toggle-item-analysis" onclick="toggleAnalisisButir()" class="px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-800 hover:bg-indigo-100 text-xs font-bold border border-indigo-200/80 transition">
             Lihat Analisis Butir
           </button>
-          <button onclick="refreshPesertaModal()" class="px-3 py-1.5 rounded-xl bg-teal-50 text-teal-800 hover:bg-teal-100 text-xs font-bold transition">
-            Segarkan
-          </button>
+          <span class="px-3 py-1.5 rounded-xl bg-teal-50 border border-teal-200/80 text-teal-800 text-xs font-bold inline-flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+            Auto-refresh 5 dtk
+          </span>
           <button onclick="tutupModalId('participants-modal')" class="px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-600 hover:bg-stone-100 text-xs font-bold">
             Tutup
           </button>
@@ -1324,6 +1325,11 @@
       const el = document.getElementById(id);
       el.classList.add("hidden");
       el.classList.remove("flex");
+
+      if (id === "participants-modal" && typeof participantsAutoRefreshTimer !== "undefined" && participantsAutoRefreshTimer) {
+        clearInterval(participantsAutoRefreshTimer);
+        participantsAutoRefreshTimer = null;
+      }
 
       if (id === "image-zoom-modal") {
         const vp = document.getElementById("app-viewport");
@@ -3177,6 +3183,8 @@ ${JSON_SCHEMA_GUIDE}`;
       }
     }
 
+    let participantsAutoRefreshTimer = null;
+
     async function bukaPantauanPeserta(idx) {
       const item = riwayatListCache[idx];
       if (!item) return;
@@ -3192,17 +3200,23 @@ ${JSON_SCHEMA_GUIDE}`;
       modal.classList.remove("hidden");
       modal.classList.add("flex");
 
-      await refreshPesertaModal();
+      if (participantsAutoRefreshTimer) clearInterval(participantsAutoRefreshTimer);
+      await refreshPesertaModal(false);
+      participantsAutoRefreshTimer = setInterval(() => {
+        refreshPesertaModal(true);
+      }, 5000);
     }
 
-    async function refreshPesertaModal() {
+    async function refreshPesertaModal(isSilent = false) {
       if (!currentMonitoringQuiz) return;
       const tbody = document.getElementById("part-tbody");
       const summary = document.getElementById("part-summary");
       const analysisGrid = document.getElementById("item-analysis-grid");
       const filterSelect = document.getElementById("part-filter-kelas");
 
-      tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">Memuat data peserta...</td></tr>`;
+      if (!isSilent) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">Memuat data peserta...</td></tr>`;
+      }
 
       try {
         const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=participants&materi=${encodeURIComponent(currentMonitoringQuiz.materi)}`);
