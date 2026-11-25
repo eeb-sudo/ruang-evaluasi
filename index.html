@@ -4,13 +4,12 @@
   <meta charset="UTF-8" />
   <meta id="app-viewport" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Portal Evaluasi Pembelajaran Interaktif</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="libs/tailwind.js"></script>
+  <script src="libs/html2canvas.min.js"></script>
   <!-- KaTeX untuk Render Pecahan, Pangkat, Akar & Simbol Matematika -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="libs/katex.min.css">
+  <script defer src="libs/katex.min.js"></script>
+  <script defer src="libs/auto-render.min.js" onload="renderAllMath()"></script>
   <style>
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
@@ -234,9 +233,12 @@
         </div>
       </div>
 
-      <div class="px-5 py-3.5 border-t border-stone-200 bg-stone-50">
+      <div class="px-5 py-3.5 border-t border-stone-200 bg-stone-50 space-y-2">
         <button id="btn-simpan-edit-cfg" onclick="simpanEditPengaturan()" class="w-full py-3 px-4 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-sm transition">
           Simpan Perubahan Pengaturan & Bobot
+        </button>
+        <button id="btn-recalc-nilai" onclick="hitungUlangNilaiKuis()" class="w-full py-2.5 px-4 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition">
+          🔄 Hitung Ulang Nilai Peserta (Sesuai Bobot Tersimpan)
         </button>
       </div>
     </div>
@@ -887,7 +889,7 @@
 
   <!-- ==================== JAVASCRIPT LOGIC ==================== -->
   <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyglwEv7lr8oaiKPSovL0cZzVHgRw_qVlYN8xjTO4OLt8MuXRyuAgMnOPv_9LudBc3O/exec";
+    const GOOGLE_SCRIPT_URL = (location.hostname === "10.42.0.1" || location.hostname === "localhost") ? "/api/gas" : "https://script.google.com/macros/s/AKfycbyglwEv7lr8oaiKPSovL0cZzVHgRw_qVlYN8xjTO4OLt8MuXRyuAgMnOPv_9LudBc3O/exec";
 
     let activeQuiz = {
       kode: "",
@@ -1606,6 +1608,7 @@
       const nowMs = Date.now();
       const startTimeFormatted = new Date(nowMs).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
+      let effectiveStartMs = nowMs;
       try {
         const res = await fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
@@ -1630,6 +1633,10 @@
           });
           return;
         }
+        if (data.serverStartMs && data.serverNowMs) {
+          const clockOffset = Date.now() - Number(data.serverNowMs);
+          effectiveStartMs = Number(data.serverStartMs) + clockOffset;
+        }
       } catch (e) {
         keluarLayarPenuh();
         showToast("Gagal memeriksa data peserta. Pastikan koneksi internet aktif.", "warning");
@@ -1644,9 +1651,9 @@
       activeQuiz.kelas = kelas;
       activeQuiz.currentIndex = 0;
       activeQuiz.violations = 0;
-      activeQuiz.startTimeMs = nowMs;
+      activeQuiz.startTimeMs = effectiveStartMs;
       activeQuiz.endTimeDeadlineMs = activeQuiz.config.durasiMenit > 0
-        ? nowMs + activeQuiz.config.durasiMenit * 60 * 1000
+        ? effectiveStartMs + activeQuiz.config.durasiMenit * 60 * 1000
         : null;
       activeQuiz.isRunning = true;
 
@@ -3100,6 +3107,35 @@ ${JSON_SCHEMA_GUIDE}`;
       } finally {
         btn.disabled = false;
         btn.textContent = "Simpan Perubahan Pengaturan & Bobot";
+      }
+    }
+
+    async function hitungUlangNilaiKuis() {
+      if (!editingConfigKode) return;
+      const btn = document.getElementById("btn-recalc-nilai");
+      const oriText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Menghitung ulang semua nilai...";
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "recalculate_grades",
+            kodeKuis: editingConfigKode
+          })
+        });
+        const data = await res.json();
+        if (data.status === "success") {
+          showToast(`Selesai! ${data.updatedCount || 0} nilai peserta diperbarui sesuai bobot baru.`, "success");
+          muatRiwayatKuis();
+        } else {
+          throw new Error(data.message || "Gagal menghitung ulang.");
+        }
+      } catch (e) {
+        showToast("Gagal menghitung ulang nilai peserta.", "warning");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = oriText;
       }
     }
 
