@@ -1,4 +1,4 @@
-const CACHE_NAME = "ruang-evaluasi-v11";
+const CACHE_NAME = "ruang-evaluasi-v12";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
