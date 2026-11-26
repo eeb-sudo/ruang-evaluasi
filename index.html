@@ -32,16 +32,6 @@
   <link rel="apple-touch-icon" href="./icon-192.png">
 </head>
 <body class="min-h-screen flex flex-col justify-between bg-stone-50 text-slate-800">
-<div id="re-splash" style="position:fixed;inset:0;z-index:99999;background:#063732;display:flex;align-items:center;justify-content:center;transition:opacity 0.5s ease-out,visibility 0.5s ease-out;pointer-events:none;">
-  <img src="./icon-512.png" alt="Ruang Evaluasi" style="width:150px;height:150px;object-fit:contain;animation:reZoom 0.6s cubic-bezier(0.22,1,0.36,1) forwards;">
-</div>
-<style>@keyframes reZoom{from{transform:scale(0.88);opacity:0.4}to{transform:scale(1);opacity:1}}</style>
-<script>
-  window.addEventListener("load", () => {
-    const sp = document.getElementById("re-splash");
-    if (sp) setTimeout(() => { sp.style.opacity = "0"; sp.style.visibility = "hidden"; setTimeout(() => sp.remove(), 520); }, 400);
-  });
-</script>
 
   <!-- TIRAI LAYAR HITAM INSTAN (AKTIF SAAT LAYAR KEHILANGAN FOKUS) -->
   <div id="blackout-curtain" class="fixed inset-0 z-[95] hidden flex-col items-center justify-center bg-black text-white p-6 text-center">
