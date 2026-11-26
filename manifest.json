@@ -4,8 +4,8 @@
   "description": "Aplikasi Evaluasi dan Kuis",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#063732",
-  "theme_color": "#063732",
+  "background_color": "#063d37",
+  "theme_color": "#063d37",
   "orientation": "portrait",
   "icons": [
     {
