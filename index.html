@@ -1036,6 +1036,27 @@
       `;
     }
 
+    // ==================== PENAHAN LAYAR MENYALA (WAKE LOCK) ====================
+    let wakeLockSentinel = null;
+    async function aktifkanWakeLock() {
+      try {
+        if ("wakeLock" in navigator) {
+          wakeLockSentinel = await navigator.wakeLock.request("screen");
+        }
+      } catch (e) {}
+    }
+    function lepasWakeLock() {
+      if (wakeLockSentinel) {
+        wakeLockSentinel.release().catch(() => {});
+        wakeLockSentinel = null;
+      }
+    }
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && typeof activeQuiz !== "undefined" && activeQuiz) {
+        aktifkanWakeLock();
+      }
+    });
+
     // ==================== KONTROL LAYAR PENUH & TIRAI HITAM ====================
     function aktifkanLayarPenuh() {
       const el = document.documentElement;
@@ -1627,6 +1648,7 @@
       btn.disabled = true;
       btn.textContent = "Memverifikasi Peserta di Server...";
 
+      aktifkanWakeLock();
       if (activeQuiz.config.antiCheat) {
         aktifkanLayarPenuh();
       }
@@ -2035,6 +2057,7 @@
 
     // ==================== PENGIRIMAN JAWABAN KE SERVER ====================
     async function selesaikanDanKirimKuis() {
+      lepasWakeLock();
       if (!activeQuiz.isRunning) return;
       activeQuiz.isRunning = false;
       clearInterval(activeQuiz.timerInterval);
