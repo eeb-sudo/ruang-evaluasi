@@ -33,9 +33,9 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between bg-stone-50 text-slate-800">
 
-  <!-- LAYAR PEMBUKA HALUS (SPLASH OVERLAY FADE-OUT) -->
-  <div id="splash-overlay" style="position:fixed;inset:0;background-color:#063d37;display:flex;align-items:center;justify-content:center;z-index:9999;opacity:1;transition:opacity 0.5s ease;">
-    <img src="./icon-512.png" alt="R/E by EEB" style="width:140px;height:140px;object-fit:contain;">
+  <!-- LAYAR PEMBUKA HALUS (SPLASH OVERLAY FADE-OUT v3) -->
+  <div id="splash-overlay" style="position:fixed;inset:0;background-color:#063d37;display:flex;align-items:center;justify-content:center;z-index:9999;opacity:1;transition:opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1);">
+    <img src="./icon-512.png" alt="R/E by EEB" style="width:96px;height:96px;object-fit:contain;">
   </div>
   <script>
     window.addEventListener("load", function () {
@@ -45,8 +45,8 @@
         splash.style.opacity = "0";
         setTimeout(function () {
           splash.style.display = "none";
-        }, 500);
-      }, 350);
+        }, 650);
+      }, 250);
     });
   </script>
 
