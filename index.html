@@ -33,6 +33,23 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between bg-stone-50 text-slate-800">
 
+  <!-- LAYAR PEMBUKA HALUS (SPLASH OVERLAY FADE-OUT) -->
+  <div id="splash-overlay" style="position:fixed;inset:0;background-color:#063d37;display:flex;align-items:center;justify-content:center;z-index:9999;opacity:1;transition:opacity 0.5s ease;">
+    <img src="./icon-512.png" alt="R/E by EEB" style="width:140px;height:140px;object-fit:contain;">
+  </div>
+  <script>
+    window.addEventListener("load", function () {
+      const splash = document.getElementById("splash-overlay");
+      if (!splash) return;
+      setTimeout(function () {
+        splash.style.opacity = "0";
+        setTimeout(function () {
+          splash.style.display = "none";
+        }, 500);
+      }, 350);
+    });
+  </script>
+
   <!-- TIRAI LAYAR HITAM INSTAN (AKTIF SAAT LAYAR KEHILANGAN FOKUS) -->
   <div id="blackout-curtain" class="fixed inset-0 z-[95] hidden flex-col items-center justify-center bg-black text-white p-6 text-center">
     <div class="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center mb-4">
