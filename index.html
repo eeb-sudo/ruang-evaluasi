@@ -26,6 +26,9 @@
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
   </style>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0F766E">
+  <link rel="apple-touch-icon" href="./icon-192.png">
 </head>
 <body class="min-h-screen flex flex-col justify-between bg-stone-50 text-slate-800">
 
@@ -3589,5 +3592,12 @@ ${JSON_SCHEMA_GUIDE}`;
       showToast("Kunci & sesi pengerjaan pada perangkat ini berhasil dihapus.", "success");
     }
   </script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+    });
+  }
+</script>
 </body>
 </html>
