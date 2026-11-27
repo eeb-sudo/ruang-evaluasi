@@ -33,19 +33,38 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between bg-stone-50 text-slate-800">
 
-  <!-- LAYAR PEMBUKA HALUS (SPLASH OVERLAY FADE-OUT v4 - TANPA LOGO GANDA) -->
-  <div id="splash-overlay" style="position:fixed;inset:0;background-color:#063d37;z-index:9999;opacity:1;transition:opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+  <!-- LAYAR PEMBUKA HALUS & ANIMASI MASUK (SPLASH OVERLAY v5) -->
+  <div id="splash-overlay" style="position:fixed;inset:0;background-color:#063d37;z-index:9999;opacity:1;transition:opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);"></div>
   <script>
-    window.addEventListener("load", function () {
-      const splash = document.getElementById("splash-overlay");
-      if (!splash) return;
-      requestAnimationFrame(function () {
-        splash.style.opacity = "0";
+    (function () {
+      function runSmoothEntrance() {
+        const splash = document.getElementById("splash-overlay");
+        const landing = document.getElementById("view-landing");
         setTimeout(function () {
-          splash.style.display = "none";
-        }, 650);
-      });
-    });
+          if (splash) {
+            splash.style.opacity = "0";
+          }
+          if (landing) {
+            landing.style.opacity = "1";
+            landing.style.transform = "translateY(0)";
+          }
+          setTimeout(function () {
+            if (splash) {
+              splash.style.display = "none";
+            }
+            if (landing) {
+              landing.style.transform = "";
+            }
+          }, 650);
+        }, 950);
+      }
+
+      if (document.readyState === "complete") {
+        runSmoothEntrance();
+      } else {
+        window.addEventListener("load", runSmoothEntrance);
+      }
+    })();
   </script>
 
   <!-- TIRAI LAYAR HITAM INSTAN (AKTIF SAAT LAYAR KEHILANGAN FOKUS) -->
@@ -440,7 +459,7 @@
   <main class="flex-grow flex flex-col items-center justify-center p-4 sm:p-6 w-full max-w-4xl mx-auto">
 
     <!-- ==================== VIEW 1: HALAMAN MUKA ==================== -->
-    <section id="view-landing" class="w-full max-w-md">
+    <section id="view-landing" class="w-full max-w-md" style="opacity:0;transform:translateY(14px);transition:opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);">
       <div class="bg-white border border-stone-200/90 rounded-3xl shadow-sm p-6 sm:p-8 text-center">
         <img src="./icon-512.png" alt="Logo Ruang Evaluasi" style="width:76px;height:76px;border-radius:20px;margin:0 auto 16px auto;display:block;box-shadow:0 8px 20px rgba(6,55,50,0.22);object-fit:cover;">
         <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight mb-1">Ruang Evaluasi</h1>
