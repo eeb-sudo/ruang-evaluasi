@@ -262,6 +262,13 @@
             </div>
           </label>
           <label class="flex items-center gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:bg-stone-50">
+            <input type="checkbox" id="edit-cfg-show-nilai" class="w-4 h-4 accent-teal-700 rounded" />
+            <div>
+              <span class="font-bold text-slate-800 block">Tampilkan Nilai Akhir di Layar Murid</span>
+              <span class="text-[11px] text-slate-500">Lepas centang saat ujian berlangsung; centang kembali untuk mengumumkan nilai.</span>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:bg-stone-50">
             <input type="checkbox" id="edit-cfg-show-pembahasan" class="w-4 h-4 accent-teal-700 rounded" />
             <div>
               <span class="font-bold text-slate-800 block">Tampilkan Pembahasan di Akhir</span>
@@ -615,7 +622,7 @@
             <h2 id="rekap-materi" class="text-lg font-extrabold text-slate-800 mt-1">Hasil Evaluasi Belajar</h2>
           </div>
           <div class="text-right">
-            <span class="text-[11px] uppercase tracking-wider text-slate-400 block">Nilai Akhir</span>
+            <span id="rekap-nilai-label" class="text-[11px] uppercase tracking-wider text-slate-400 block">Nilai Akhir</span>
             <span id="rekap-nilai" class="text-3xl sm:text-4xl font-extrabold text-teal-700">0</span>
           </div>
         </div>
@@ -635,16 +642,16 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs mb-3">
-          <div class="p-2.5 rounded-xl bg-teal-50/60 border border-teal-100">
+        <div id="rekap-stats-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs mb-3">
+          <div id="rekap-box-benar" class="p-2.5 rounded-xl bg-teal-50/60 border border-teal-100">
             <span class="text-slate-500 block">Benar Penuh</span>
             <strong id="rekap-benar" class="text-sm text-teal-800">0</strong>
           </div>
-          <div class="p-2.5 rounded-xl bg-amber-50/60 border border-amber-100">
+          <div id="rekap-box-sebagian" class="p-2.5 rounded-xl bg-amber-50/60 border border-amber-100">
             <span class="text-slate-500 block">Benar Sebagian</span>
             <strong id="rekap-sebagian" class="text-sm text-amber-800">0</strong>
           </div>
-          <div class="p-2.5 rounded-xl bg-stone-100 border border-stone-200">
+          <div id="rekap-box-salah" class="p-2.5 rounded-xl bg-stone-100 border border-stone-200">
             <span class="text-slate-500 block">Salah</span>
             <strong id="rekap-salah" class="text-sm text-slate-700">0</strong>
           </div>
@@ -829,6 +836,13 @@
               </div>
             </label>
             <label class="flex items-center gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:bg-stone-50">
+              <input type="checkbox" id="cfg-show-nilai" checked class="w-4 h-4 accent-teal-700 rounded" />
+              <div>
+                <span class="font-bold text-slate-800 block">Tampilkan Nilai Akhir di Layar Murid</span>
+                <span class="text-[11px] text-slate-500">Lepas centang saat ujian berlangsung agar nilai belum terlihat.</span>
+              </div>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-xl border border-stone-200 bg-white cursor-pointer hover:bg-stone-50">
               <input type="checkbox" id="cfg-show-pembahasan" checked class="w-4 h-4 accent-teal-700 rounded" />
               <div>
                 <span class="font-bold text-slate-800 block">Tampilkan Pembahasan di Akhir</span>
@@ -956,6 +970,7 @@
         poinKat: 3,
         poinKat2: 2,
         poinKat1: 1,
+        showNilai: true,
         showPembahasan: true
       },
       answers: [],
@@ -1526,10 +1541,12 @@
         const data = await res.json();
 
         if (data.status === "success" && data.found && data.rekap) {
+          const showNilaiLatest = await cekStatusTampilNilai(kode, true);
+          const mergedRekap = { ...data.rekap, showNilai: showNilaiLatest };
           tutupModalId("lookup-result-modal");
-          localStorage.setItem(`kuis_selesai_${kode}`, JSON.stringify(data.rekap));
-          cachedRekapData = data.rekap;
-          renderHalamanRekap(data.rekap);
+          localStorage.setItem(`kuis_selesai_${kode}`, JSON.stringify(mergedRekap));
+          cachedRekapData = mergedRekap;
+          renderHalamanRekap(mergedRekap);
           showToast("Data hasil ujian berhasil dimuat!", "success");
         } else {
           showToast(data.message || "Data nilai tidak ditemukan. Periksa kembali identitasmu.", "warning");
@@ -1572,10 +1589,12 @@
             const chkData = await chk.json();
 
             if (chkData.status === "success" && chkData.found === true && chkData.rekap) {
-              localStorage.setItem(savedKey, JSON.stringify(chkData.rekap));
-              cachedRekapData = chkData.rekap;
+              const showNilaiLatest = await cekStatusTampilNilai(kodeInput, parsedRes.showNilai !== false);
+              const mergedRekap = { ...chkData.rekap, showNilai: showNilaiLatest };
+              localStorage.setItem(savedKey, JSON.stringify(mergedRekap));
+              cachedRekapData = mergedRekap;
               renderHalamanRekap(cachedRekapData);
-              showToast("Menampilkan hasil & status pembahasan terbaru.", "info");
+              showToast("Menampilkan status hasil evaluasi terbaru.", "info");
               return;
             } else if ((chkData.status === "success" && chkData.found === false) || (chkData.status === "error" && /belum ada data|tidak ditemukan/i.test(chkData.message || ""))) {
               localStorage.removeItem(savedKey);
@@ -1621,6 +1640,7 @@
             poinKat: Number(data.config?.poinKat ?? 3),
             poinKat2: Number(data.config?.poinKat2 ?? 2),
             poinKat1: Number(data.config?.poinKat1 ?? 1),
+            showNilai: data.config?.showNilai !== false,
             showPembahasan: data.config?.showPembahasan !== false,
             acakSoal: data.config?.acakSoal !== false,
             acakOpsi: data.config?.acakOpsi !== false
@@ -2145,8 +2165,10 @@
         });
         const data = await res.json();
         if (data.status === "success" && data.rekap) {
+          const showNilaiLatest = await cekStatusTampilNilai(submitPayload.kode, activeQuiz.config?.showNilai !== false);
           const finalRekap = {
             ...data.rekap,
+            showNilai: showNilaiLatest,
             startTimeFormatted: submitPayload.startTimeFormatted,
             synced: true
           };
@@ -2194,10 +2216,59 @@
       kirimDataNilaiKeServer(cachedRekapData.pendingPayload, true);
     }
 
+    async function cekStatusTampilNilai(kode, fallbackVal = true) {
+      try {
+        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=list`);
+        const data = await res.json();
+        if (data.status === "success" && Array.isArray(data.list)) {
+          const found = data.list.find(item => String(item.kode || "").toUpperCase() === String(kode || "").toUpperCase());
+          if (found && found.config) {
+            return found.config.showNilai !== false;
+          }
+        }
+      } catch (_) {}
+      return fallbackVal;
+    }
+
     function renderHalamanRekap(data) {
       document.getElementById("rekap-kode-badge").textContent = `KODE: ${data.kode}`;
       document.getElementById("rekap-materi").textContent = data.materi;
-      document.getElementById("rekap-nilai").textContent = data.finalGrade;
+
+      const nilaiLabelEl = document.getElementById("rekap-nilai-label");
+      const nilaiEl = document.getElementById("rekap-nilai");
+      const statsGrid = document.getElementById("rekap-stats-grid");
+      const boxBenar = document.getElementById("rekap-box-benar");
+      const boxSebagian = document.getElementById("rekap-box-sebagian");
+      const boxSalah = document.getElementById("rekap-box-salah");
+
+      const isNilaiHidden = data.synced !== false && data.showNilai === false;
+
+      if (data.synced === false) {
+        nilaiLabelEl.textContent = "Status Pengiriman";
+        nilaiEl.textContent = "Pending";
+        nilaiEl.className = "text-2xl sm:text-3xl font-extrabold text-amber-600";
+        boxBenar.classList.remove("hidden");
+        boxSebagian.classList.remove("hidden");
+        boxSalah.classList.remove("hidden");
+        statsGrid.className = "grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs mb-3";
+      } else if (isNilaiHidden) {
+        nilaiLabelEl.textContent = "Status Evaluasi";
+        nilaiEl.textContent = "Menunggu Pengumuman";
+        nilaiEl.className = "text-xs sm:text-sm font-extrabold text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl inline-block mt-1";
+        boxBenar.classList.add("hidden");
+        boxSebagian.classList.add("hidden");
+        boxSalah.classList.add("hidden");
+        statsGrid.className = "grid grid-cols-1 gap-2.5 text-xs mb-3";
+      } else {
+        nilaiLabelEl.textContent = "Nilai Akhir";
+        nilaiEl.textContent = data.finalGrade;
+        nilaiEl.className = "text-3xl sm:text-4xl font-extrabold text-teal-700";
+        boxBenar.classList.remove("hidden");
+        boxSebagian.classList.remove("hidden");
+        boxSalah.classList.remove("hidden");
+        statsGrid.className = "grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs mb-3";
+      }
+
       document.getElementById("rekap-nama").textContent = data.nama;
       document.getElementById("rekap-absen").textContent = data.absen;
       document.getElementById("rekap-kelas").textContent = data.kelas;
@@ -2264,7 +2335,10 @@
           try { await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]); } catch (_) {}
         }
 
-        const laporanText = `*LAPORAN HASIL EVALUASI*\nMateri: ${cachedRekapData.materi} (${cachedRekapData.kode})\nNama: ${cachedRekapData.nama}\nNo. Absen: ${cachedRekapData.absen}\nKelas: ${cachedRekapData.kelas}\nNilai Akhir: *${cachedRekapData.finalGrade}*\nBenar: ${cachedRekapData.fullCorrectCount} | Sebagian: ${cachedRekapData.partialCount} | Salah: ${cachedRekapData.wrongCount}\nDurasi: ${cachedRekapData.duration}`;
+        const isNilaiHidden = cachedRekapData.synced !== false && cachedRekapData.showNilai === false;
+        const laporanText = isNilaiHidden
+          ? `*BUKTI SELESAI EVALUASI*\nMateri: ${cachedRekapData.materi} (${cachedRekapData.kode})\nNama: ${cachedRekapData.nama}\nNo. Absen: ${cachedRekapData.absen}\nKelas: ${cachedRekapData.kelas}\nStatus: *Menunggu Pengumuman*\nDurasi: ${cachedRekapData.duration}`
+          : `*LAPORAN HASIL EVALUASI*\nMateri: ${cachedRekapData.materi} (${cachedRekapData.kode})\nNama: ${cachedRekapData.nama}\nNo. Absen: ${cachedRekapData.absen}\nKelas: ${cachedRekapData.kelas}\nNilai Akhir: *${cachedRekapData.finalGrade}*\nBenar: ${cachedRekapData.fullCorrectCount} | Sebagian: ${cachedRekapData.partialCount} | Salah: ${cachedRekapData.wrongCount}\nDurasi: ${cachedRekapData.duration}`;
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({ files: [file], title: "Bukti Hasil Evaluasi", text: laporanText });
@@ -2500,6 +2574,7 @@ ${JSON_SCHEMA_GUIDE}`;
         poinKat2: parseFloat(document.getElementById("cfg-poin-kat2").value) || 0,
         poinKat1: parseFloat(document.getElementById("cfg-poin-kat1").value) || 0,
         antiCheat: document.getElementById("cfg-anti-cheat").checked,
+        showNilai: document.getElementById("cfg-show-nilai").checked,
         showPembahasan: document.getElementById("cfg-show-pembahasan").checked
       };
 
@@ -3142,6 +3217,7 @@ ${JSON_SCHEMA_GUIDE}`;
       document.getElementById("edit-cfg-poin-kat2").value = cfg.poinKat2 ?? 2;
       document.getElementById("edit-cfg-poin-kat1").value = cfg.poinKat1 ?? 1;
       document.getElementById("edit-cfg-anti-cheat").checked = cfg.antiCheat !== false;
+      document.getElementById("edit-cfg-show-nilai").checked = cfg.showNilai !== false;
       document.getElementById("edit-cfg-show-pembahasan").checked = cfg.showPembahasan !== false;
       document.getElementById("edit-cfg-acak-soal").checked = cfg.acakSoal !== false;
       document.getElementById("edit-cfg-acak-opsi").checked = cfg.acakOpsi !== false;
@@ -3169,6 +3245,7 @@ ${JSON_SCHEMA_GUIDE}`;
         poinKat2: parseFloat(document.getElementById("edit-cfg-poin-kat2").value) || 0,
         poinKat1: parseFloat(document.getElementById("edit-cfg-poin-kat1").value) || 0,
         antiCheat: document.getElementById("edit-cfg-anti-cheat").checked,
+        showNilai: document.getElementById("edit-cfg-show-nilai").checked,
         showPembahasan: document.getElementById("edit-cfg-show-pembahasan").checked,
         acakSoal: document.getElementById("edit-cfg-acak-soal").checked,
         acakOpsi: document.getElementById("edit-cfg-acak-opsi").checked
